@@ -1,0 +1,187 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  
+  <!-- Primary Meta Tags -->
+  <title>{% block title %}KaryaFlow — Organize Work. Empower Teams.{% endblock %}</title>
+  <meta name="title" content="KaryaFlow — Organize Work. Empower Teams.">
+  <meta name="description" content="KaryaFlow is an intuitive, modern project and task management platform built for agile teams and project leaders. Plan, assign, track and flow effortlessly.">
+  <meta name="keywords" content="project management, task tracker, team productivity, workflow, SaaS, collaboration">
+  <meta name="theme-color" content="#FAF7F2">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="KaryaFlow — Organize Work. Empower Teams.">
+  <meta property="og:description" content="Plan projects, organize tasks and keep everyone moving forward with clarity and speed.">
+
+  <!-- Favicon SVG (Brand Mark) -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none'><rect width='32' height='32' rx='8' fill='%23C8754D'/><path d='M9 16L14 21L23 11' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/><circle cx='23' cy='21' r='2' fill='white'/></svg>">
+
+  <!-- Google Fonts: Plus Jakarta Sans (Headings) & Inter (Body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Core Stylesheet -->
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="antialiased">
+
+  <!-- ======================== NAVBAR ======================== -->
+  <header class="site-header" id="navbar">
+    <div class="nav-container">
+      <!-- Brand Logo -->
+      <a href="{% url 'home' %}" class="brand-logo" aria-label="KaryaFlow Homepage">
+        <div class="logo-symbol">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 12C4 7.58172 7.58172 4 12 4C14.5 4 16.7 5.15 18.2 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M20 12C20 16.4183 16.4183 20 12 20C9.5 20 7.3 18.85 5.8 17" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="12" cy="12" r="3" fill="currentColor"/>
+            <path d="M12 6V3M12 21V18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="brand-text">Karya<span>Flow</span></span>
+      </a>
+
+      <!-- Desktop Navigation Links -->
+      <nav class="nav-desktop" aria-label="Primary Navigation">
+        <ul class="nav-links">
+          <li><a href="#hero" class="nav-link active">Home</a></li>
+          <li><a href="#features" class="nav-link">Features</a></li>
+          <li><a href="#how-it-works" class="nav-link">How It Works</a></li>
+          <li><a href="#preview" class="nav-link">Preview</a></li>
+          <li><a href="#teamwork" class="nav-link">Teamwork</a></li>
+        </ul>
+      </nav>
+
+      <!-- Desktop Action Buttons -->
+      <div class="nav-actions">
+        <!-- Backend placeholder links for login & register -->
+        <a href="#login-placeholder" class="btn btn-ghost" title="Login to KaryaFlow">Log In</a>
+        <a href="#signup-placeholder" class="btn btn-primary" title="Get Started with KaryaFlow">
+          <span>Get Started</span>
+          <i data-lucide="arrow-right" class="btn-icon"></i>
+        </a>
+      </div>
+
+      <!-- Mobile Hamburger Button -->
+      <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="mobileMenu" aria-label="Toggle navigation menu">
+        <span class="hamburger-bar"></span>
+        <span class="hamburger-bar"></span>
+        <span class="hamburger-bar"></span>
+      </button>
+    </div>
+
+    <!-- Mobile Drawer Navigation -->
+    <div class="mobile-drawer" id="mobileMenu" aria-hidden="true">
+      <div class="mobile-drawer-inner">
+        <ul class="mobile-nav-links">
+          <li><a href="#hero" class="mobile-nav-link">Home</a></li>
+          <li><a href="#features" class="mobile-nav-link">Features</a></li>
+          <li><a href="#how-it-works" class="mobile-nav-link">How It Works</a></li>
+          <li><a href="#preview" class="mobile-nav-link">Preview</a></li>
+          <li><a href="#teamwork" class="mobile-nav-link">Teamwork</a></li>
+        </ul>
+        <div class="mobile-actions">
+          <a href="#login-placeholder" class="btn btn-outline btn-block">Log In</a>
+          <a href="#signup-placeholder" class="btn btn-primary btn-block">Get Started Free</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ======================== MAIN CONTENT ======================== -->
+  <main id="main-content">
+    {% block content %}
+    {% endblock %}
+  </main>
+
+  <!-- ======================== FOOTER ======================== -->
+  <footer class="site-footer">
+    <div class="footer-container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <a href="{% url 'home' %}" class="brand-logo footer-logo">
+            <div class="logo-symbol">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 12C4 7.58172 7.58172 4 12 4C14.5 4 16.7 5.15 18.2 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M20 12C20 16.4183 16.4183 20 12 20C9.5 20 7.3 18.85 5.8 17" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                <circle cx="12" cy="12" r="3" fill="currentColor"/>
+              </svg>
+            </div>
+            <span class="brand-text">Karya<span>Flow</span></span>
+          </a>
+          <p class="footer-tagline">Organize Work. Empower Teams.</p>
+          <p class="footer-desc">
+            A purposeful project and task orchestration system designed for clarity, accountability, and streamlined collaboration.
+          </p>
+          <div class="footer-status-pill">
+            <span class="status-dot"></span>
+            <span>All systems operational</span>
+          </div>
+        </div>
+
+        <div class="footer-grid">
+          <div class="footer-col">
+            <h4 class="footer-heading">Product</h4>
+            <ul class="footer-links">
+              <li><a href="#features">Features</a></li>
+              <li><a href="#how-it-works">How It Works</a></li>
+              <li><a href="#preview">Product Preview</a></li>
+              <li><a href="#teamwork">Team Collaboration</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-col">
+            <h4 class="footer-heading">Workflows</h4>
+            <ul class="footer-links">
+              <li><a href="#features">Project Management</a></li>
+              <li><a href="#features">Task Allocation</a></li>
+              <li><a href="#features">Role-Based Access</a></li>
+              <li><a href="#features">Milestone Tracking</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-col">
+            <h4 class="footer-heading">Account</h4>
+            <ul class="footer-links">
+              <li><a href="#login-placeholder">Sign In</a></li>
+              <li><a href="#signup-placeholder">Create Account</a></li>
+              <li><a href="#about">About KaryaFlow</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p class="copyright">&copy; {% now "Y" %} KaryaFlow. All rights reserved.</p>
+        <div class="footer-bottom-links">
+          <a href="#privacy">Privacy Policy</a>
+          <span class="separator">&bull;</span>
+          <a href="#terms">Terms of Service</a>
+          <span class="separator">&bull;</span>
+          <a href="#security">Security</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="{% static 'js/main.js' %}"></script>
+  <script>
+    // Initialize Lucide icons
+    if (window.lucide) {
+      lucide.createIcons();
+    }
+  </script>
+</body>
+</html>

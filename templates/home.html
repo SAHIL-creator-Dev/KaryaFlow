@@ -1,0 +1,893 @@
+{% extends 'main.html' %}
+{% load static %}
+
+{% block title %}KaryaFlow — Organize Work. Empower Teams.{% endblock %}
+
+{% block content %}
+<!-- ======================== A. HERO SECTION ======================== -->
+<section class="hero-section" id="hero">
+  <!-- Subtle ambient decorative canvas/glows -->
+  <div class="ambient-glow ambient-glow-1" aria-hidden="true"></div>
+  <div class="ambient-glow ambient-glow-2" aria-hidden="true"></div>
+
+  <div class="hero-container">
+    <div class="hero-content">
+      <!-- Tagline Pill -->
+      <div class="hero-badge reveal-item">
+        <span class="badge-dot"></span>
+        <span class="badge-label">KaryaFlow</span>
+        <span class="badge-divider">/</span>
+        <span class="badge-text">Organize Work. Empower Teams.</span>
+      </div>
+
+      <!-- Main Headline -->
+      <h1 class="hero-title reveal-item">
+        Bring Your Team’s Work Into <span class="highlight-text">Flow.</span>
+      </h1>
+
+      <!-- Supporting Subtitle -->
+      <p class="hero-subtitle reveal-item">
+        Plan projects, organize tasks and keep everyone moving forward. KaryaFlow makes teamwork simpler, clearer and more productive.
+      </p>
+
+      <!-- Action Buttons -->
+      <div class="hero-cta-group reveal-item">
+        <a href="#preview" class="btn btn-primary btn-lg">
+          <span>Get Started</span>
+          <i data-lucide="arrow-up-right" class="btn-icon"></i>
+        </a>
+        <a href="#features" class="btn btn-secondary btn-lg">
+          <i data-lucide="compass" class="btn-icon"></i>
+          <span>Explore Features</span>
+        </a>
+      </div>
+
+      <!-- Value Statement -->
+      <div class="hero-trust reveal-item">
+        <div class="trust-icons">
+          <i data-lucide="check-circle-2" class="trust-icon"></i>
+        </div>
+        <p class="trust-text">
+          <span>Less confusion.</span>
+          <span class="dot-separator">•</span>
+          <span>Better collaboration.</span>
+          <span class="dot-separator">•</span>
+          <span>More progress.</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- Hero Interactive-Feel Visual Composition (Pure HTML & CSS) -->
+    <div class="hero-visual reveal-item" aria-label="KaryaFlow interactive interface preview">
+      <div class="hero-mockup-wrapper">
+        
+        <!-- Background floating decorative badge 1 -->
+        <div class="floating-chip chip-left float-card">
+          <div class="chip-avatar-lead">
+            <i data-lucide="shield-check" class="chip-icon"></i>
+          </div>
+          <div class="chip-info">
+            <span class="chip-role">Project Lead</span>
+            <span class="chip-name">Sahil V. assigned a task</span>
+          </div>
+          <span class="chip-status-tag tag-lead">Lead</span>
+        </div>
+
+        <!-- Main Dashboard Card Preview -->
+        <div class="hero-dashboard-preview">
+          <!-- Window Header Bar -->
+          <div class="mockup-window-bar">
+            <div class="window-dots">
+              <span class="dot red"></span>
+              <span class="dot amber"></span>
+              <span class="dot green"></span>
+            </div>
+            <div class="window-title">
+              <i data-lucide="folder-kanban" class="window-icon"></i>
+              <span>Project / Core Platform Sprint</span>
+            </div>
+            <div class="window-badge">Active Sprint</div>
+          </div>
+
+          <!-- Mockup Main Body -->
+          <div class="mockup-body">
+            <!-- Project Header Metric -->
+            <div class="mockup-header-stats">
+              <div class="stat-meta">
+                <span class="stat-label">Total Completion</span>
+                <span class="stat-value">78%</span>
+              </div>
+              <div class="mockup-progress-bar">
+                <div class="progress-fill" style="width: 78%;"></div>
+              </div>
+              <div class="stat-footer">
+                <span class="tasks-count"><i data-lucide="check-check" class="mini-icon"></i> 14 of 18 tasks done</span>
+                <span class="members-count"><i data-lucide="users" class="mini-icon"></i> 5 Members</span>
+              </div>
+            </div>
+
+            <!-- Task Mini-List with realistic items -->
+            <div class="mockup-task-list">
+              <!-- Task Card 1 -->
+              <div class="mockup-task-card is-done">
+                <div class="task-check">
+                  <i data-lucide="check" class="check-icon"></i>
+                </div>
+                <div class="task-details">
+                  <span class="task-title">Design role permission matrix</span>
+                  <span class="task-subtext">Projects &bull; Assigned to <strong class="user-highlight">Aanya R.</strong></span>
+                </div>
+                <span class="task-badge badge-done">Completed</span>
+              </div>
+
+              <!-- Task Card 2 -->
+              <div class="mockup-task-card is-active">
+                <div class="task-check in-progress">
+                  <div class="pulse-ring"></div>
+                </div>
+                <div class="task-details">
+                  <span class="task-title">Implement task status state machine</span>
+                  <span class="task-subtext">Backend Sprint &bull; Assigned to <strong class="user-highlight">Dev Team</strong></span>
+                </div>
+                <span class="task-badge badge-progress">In Progress</span>
+              </div>
+
+              <!-- Task Card 3 -->
+              <div class="mockup-task-card">
+                <div class="task-check pending"></div>
+                <div class="task-details">
+                  <span class="task-title">Team review & sprint sign-off</span>
+                  <span class="task-subtext">Workflow &bull; Due Tomorrow</span>
+                </div>
+                <span class="task-badge badge-pending">Upcoming</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Floating Chip 2: Member Update -->
+        <div class="floating-chip chip-right float-card-reverse">
+          <div class="chip-avatar-member">
+            <span>AR</span>
+          </div>
+          <div class="chip-info">
+            <span class="chip-role">Member</span>
+            <span class="chip-name">Status updated to: <strong>Done</strong></span>
+          </div>
+          <div class="chip-success-indicator">
+            <i data-lucide="check" class="success-icon"></i>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== B. VALUE HIGHLIGHT TICKER ======================== -->
+<div class="value-ticker-strip">
+  <div class="ticker-container">
+    <div class="ticker-item">
+      <i data-lucide="layout-grid" class="ticker-icon"></i>
+      <span>Multi-Project Oversight</span>
+    </div>
+    <div class="ticker-separator">&bull;</div>
+    <div class="ticker-item">
+      <i data-lucide="user-check" class="ticker-icon"></i>
+      <span>Project-Specific Roles</span>
+    </div>
+    <div class="ticker-separator">&bull;</div>
+    <div class="ticker-item">
+      <i data-lucide="workflow" class="ticker-icon"></i>
+      <span>Focused Member Tasks</span>
+    </div>
+    <div class="ticker-separator">&bull;</div>
+    <div class="ticker-item">
+      <i data-lucide="activity" class="ticker-icon"></i>
+      <span>Live Velocity Metrics</span>
+    </div>
+  </div>
+</div>
+
+<!-- ======================== C. FEATURES SECTION ======================== -->
+<section class="features-section" id="features">
+  <div class="section-container">
+    <div class="section-header text-center">
+      <div class="section-tag">
+        <i data-lucide="sparkles" class="tag-icon"></i>
+        <span>Core Capabilities</span>
+      </div>
+      <h2 class="section-title">
+        Everything Your Team Needs to Stay Organized
+      </h2>
+      <p class="section-subtitle">
+        Carefully structured to remove clutter and focus entirely on what delivers momentum. Built for clarity, accountability, and effortless execution.
+      </p>
+    </div>
+
+    <div class="features-grid">
+      <!-- Feature 1 -->
+      <div class="feature-card">
+        <div class="feature-icon-wrapper">
+          <i data-lucide="folder-git-2" class="feature-icon"></i>
+        </div>
+        <div class="feature-content">
+          <h3 class="feature-title">Project Management</h3>
+          <p class="feature-description">
+            Create and organize multiple projects within distinct workspaces. Keep project goals, metadata, and scopes unified and accessible.
+          </p>
+          <ul class="feature-points">
+            <li><i data-lucide="check" class="point-icon"></i> Multi-project hierarchy</li>
+            <li><i data-lucide="check" class="point-icon"></i> Clean project scopes & specs</li>
+          </ul>
+        </div>
+        <div class="feature-accent-line"></div>
+      </div>
+
+      <!-- Feature 2 -->
+      <div class="feature-card">
+        <div class="feature-icon-wrapper">
+          <i data-lucide="list-todo" class="feature-icon"></i>
+        </div>
+        <div class="feature-content">
+          <h3 class="feature-title">Task Assignment</h3>
+          <p class="feature-description">
+            Deconstruct complex milestones into assignable, bite-sized tasks. Set unambiguous deadlines, priority tiers, and explicit instructions.
+          </p>
+          <ul class="feature-points">
+            <li><i data-lucide="check" class="point-icon"></i> Direct teammate attribution</li>
+            <li><i data-lucide="check" class="point-icon"></i> Urgent & high-priority flags</li>
+          </ul>
+        </div>
+        <div class="feature-accent-line"></div>
+      </div>
+
+      <!-- Feature 3 -->
+      <div class="feature-card">
+        <div class="feature-icon-wrapper">
+          <i data-lucide="users-2" class="feature-icon"></i>
+        </div>
+        <div class="feature-content">
+          <h3 class="feature-title">Team Collaboration</h3>
+          <p class="feature-description">
+            Invite colleagues, stakeholders, and specialists to specific projects. Assign context-aware roles without cluttering company-wide spaces.
+          </p>
+          <ul class="feature-points">
+            <li><i data-lucide="check" class="point-icon"></i> Hassle-free email invitations</li>
+            <li><i data-lucide="check" class="point-icon"></i> Granular project staffing</li>
+          </ul>
+        </div>
+        <div class="feature-accent-line"></div>
+      </div>
+
+      <!-- Feature 4 -->
+      <div class="feature-card">
+        <div class="feature-icon-wrapper">
+          <i data-lucide="line-chart" class="feature-icon"></i>
+        </div>
+        <div class="feature-content">
+          <h3 class="feature-title">Progress Tracking</h3>
+          <p class="feature-description">
+            Monitor real-time task statuses and milestone completion rates. Spot bottlenecks before they impact scheduled release dates.
+          </p>
+          <ul class="feature-points">
+            <li><i data-lucide="check" class="point-icon"></i> Percentage completion dials</li>
+            <li><i data-lucide="check" class="point-icon"></i> Instant milestone visibility</li>
+          </ul>
+        </div>
+        <div class="feature-accent-line"></div>
+      </div>
+
+      <!-- Feature 5 -->
+      <div class="feature-card">
+        <div class="feature-icon-wrapper">
+          <i data-lucide="shield-alert" class="feature-icon"></i>
+        </div>
+        <div class="feature-content">
+          <h3 class="feature-title">Role-Based Access</h3>
+          <p class="feature-description">
+            Safeguard project governance. Leaders manage architecture, scope, and deadlines, while members focus only on their designated deliverables.
+          </p>
+          <ul class="feature-points">
+            <li><i data-lucide="check" class="point-icon"></i> Project Leader governance</li>
+            <li><i data-lucide="check" class="point-icon"></i> Distraction-free member views</li>
+          </ul>
+        </div>
+        <div class="feature-accent-line"></div>
+      </div>
+
+      <!-- Feature 6 -->
+      <div class="feature-card">
+        <div class="feature-icon-wrapper">
+          <i data-lucide="layout-dashboard" class="feature-icon"></i>
+        </div>
+        <div class="feature-content">
+          <h3 class="feature-title">Organized Workspace</h3>
+          <p class="feature-description">
+            Eliminate fragmented tools, spreadsheets, and lost chat messages. Keep every project activity, discussion, and task unified under one roof.
+          </p>
+          <ul class="feature-points">
+            <li><i data-lucide="check" class="point-icon"></i> Centralized task inbox</li>
+            <li><i data-lucide="check" class="point-icon"></i> Synchronized status updates</li>
+          </ul>
+        </div>
+        <div class="feature-accent-line"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== D. HOW IT WORKS SECTION ======================== -->
+<section class="how-it-works-section" id="how-it-works">
+  <div class="section-container">
+    <div class="section-header text-center">
+      <div class="section-tag">
+        <i data-lucide="git-branch" class="tag-icon"></i>
+        <span>Step-By-Step Workflow</span>
+      </div>
+      <h2 class="section-title">
+        How KaryaFlow Brings Work Into Flow
+      </h2>
+      <p class="section-subtitle">
+        Four straightforward phases designed to transition your project from initial concept to completed milestone without friction.
+      </p>
+    </div>
+
+    <!-- Timeline Wrapper -->
+    <div class="workflow-timeline">
+      <!-- Connecting desktop pipeline line -->
+      <div class="timeline-track" aria-hidden="true">
+        <div class="timeline-indicator"></div>
+      </div>
+
+      <div class="workflow-grid">
+        <!-- Step 1 -->
+        <div class="workflow-step">
+          <div class="step-badge">
+            <span class="step-num">01</span>
+          </div>
+          <div class="step-card">
+            <div class="step-icon-box">
+              <i data-lucide="folder-plus" class="step-icon"></i>
+            </div>
+            <h3 class="step-title">Create a Project</h3>
+            <p class="step-text">
+              Define your project name, scope, target milestones, and high-level objectives in seconds.
+            </p>
+            <div class="step-micro-preview">
+              <span class="micro-label">New Project:</span>
+              <span class="micro-chip">Mobile Redesign 2026</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="workflow-step">
+          <div class="step-badge">
+            <span class="step-num">02</span>
+          </div>
+          <div class="step-card">
+            <div class="step-icon-box">
+              <i data-lucide="user-plus" class="step-icon"></i>
+            </div>
+            <h3 class="step-title">Invite Your Team</h3>
+            <p class="step-text">
+              Add collaborators to the project and assign dedicated roles like Project Lead or Team Member.
+            </p>
+            <div class="step-micro-preview">
+              <div class="avatar-stack">
+                <span class="mini-avatar av-1">SV</span>
+                <span class="mini-avatar av-2">AR</span>
+                <span class="mini-avatar av-3">+3</span>
+              </div>
+              <span class="micro-subtext">5 Active Roles</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="workflow-step">
+          <div class="step-badge">
+            <span class="step-num">03</span>
+          </div>
+          <div class="step-card">
+            <div class="step-icon-box">
+              <i data-lucide="check-square" class="step-icon"></i>
+            </div>
+            <h3 class="step-title">Assign Tasks</h3>
+            <p class="step-text">
+              Break down the work into clear, manageable tasks with deadlines, descriptions, and assigned owners.
+            </p>
+            <div class="step-micro-preview">
+              <span class="micro-chip chip-priority"><i data-lucide="clock" class="mini-clock"></i> Due Friday</span>
+              <span class="micro-badge-high">High</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="workflow-step">
+          <div class="step-badge">
+            <span class="step-num">04</span>
+          </div>
+          <div class="step-card">
+            <div class="step-icon-box">
+              <i data-lucide="trending-up" class="step-icon"></i>
+            </div>
+            <h3 class="step-title">Track Progress</h3>
+            <p class="step-text">
+              Team members update their progress directly. Watch tasks transition to completion in real-time.
+            </p>
+            <div class="step-micro-preview">
+              <div class="micro-progress-wrap">
+                <div class="micro-bar-fill" style="width: 85%;"></div>
+              </div>
+              <span class="micro-percent">85% Complete</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== E. PRODUCT PREVIEW SECTION ======================== -->
+<section class="preview-section" id="preview">
+  <div class="section-container">
+    <div class="section-header text-center">
+      <div class="section-tag">
+        <i data-lucide="monitor" class="tag-icon"></i>
+        <span>Realistic Workspace Experience</span>
+      </div>
+      <h2 class="section-title">
+        Designed for Focus, Built for Execution
+      </h2>
+      <p class="section-subtitle">
+        A static, high-fidelity look into the KaryaFlow interface. Every component is designed to keep clutter down and momentum high.
+      </p>
+    </div>
+
+    <!-- Product Dashboard Full Mockup Window -->
+    <div class="dashboard-showcase">
+      <!-- Window Chrome -->
+      <div class="showcase-window-chrome">
+        <div class="window-controls">
+          <span class="control-dot close"></span>
+          <span class="control-dot min"></span>
+          <span class="control-dot max"></span>
+        </div>
+        <div class="window-address-bar">
+          <i data-lucide="lock" class="address-icon"></i>
+          <span>app.karyaflow.io / projects / finflow-q4 / tasks</span>
+        </div>
+        <div class="window-badge-preview">
+          <span>Illustrative Preview</span>
+        </div>
+      </div>
+
+      <!-- App Frame -->
+      <div class="showcase-app-frame">
+        <!-- Mockup Sidebar -->
+        <aside class="mockup-sidebar">
+          <div class="sidebar-brand">
+            <div class="logo-symbol small">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M4 12C4 7.58172 7.58172 4 12 4C14.5 4 16.7 5.15 18.2 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M20 12C20 16.4183 16.4183 20 12 20C9.5 20 7.3 18.85 5.8 17" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                <circle cx="12" cy="12" r="3" fill="currentColor"/>
+              </svg>
+            </div>
+            <span class="sidebar-title">KaryaFlow</span>
+          </div>
+
+          <div class="sidebar-menu">
+            <div class="sidebar-label">Main Menu</div>
+            <a href="#" class="sidebar-item" onclick="return false;">
+              <i data-lucide="layout-grid" class="sidebar-icon"></i>
+              <span>Dashboard</span>
+            </a>
+            <a href="#" class="sidebar-item active" onclick="return false;">
+              <i data-lucide="folder-kanban" class="sidebar-icon"></i>
+              <span>Projects</span>
+              <span class="sidebar-count">4</span>
+            </a>
+            <a href="#" class="sidebar-item" onclick="return false;">
+              <i data-lucide="check-circle" class="sidebar-icon"></i>
+              <span>My Tasks</span>
+              <span class="sidebar-count highlight">3</span>
+            </a>
+            <a href="#" class="sidebar-item" onclick="return false;">
+              <i data-lucide="users" class="sidebar-icon"></i>
+              <span>Team Members</span>
+            </a>
+
+            <div class="sidebar-label" style="margin-top: 1.5rem;">Active Workspaces</div>
+            <div class="sidebar-project-item active">
+              <span class="project-dot dot-terracotta"></span>
+              <span>KaryaFlow Platform</span>
+            </div>
+            <div class="sidebar-project-item">
+              <span class="project-dot dot-slate"></span>
+              <span>Marketing Campaign</span>
+            </div>
+            <div class="sidebar-project-item">
+              <span class="project-dot dot-sand"></span>
+              <span>Mobile App Sprint</span>
+            </div>
+          </div>
+
+          <div class="sidebar-footer">
+            <div class="user-profile-chip">
+              <div class="user-avatar">SL</div>
+              <div class="user-meta">
+                <span class="user-name">Sahil (Lead)</span>
+                <span class="user-role">Administrator</span>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Mockup Main Workspace Area -->
+        <div class="mockup-main">
+          <!-- Topbar -->
+          <header class="mockup-topbar">
+            <div class="topbar-search">
+              <i data-lucide="search" class="search-icon"></i>
+              <input type="text" placeholder="Search tasks, deliverables, members..." readonly>
+            </div>
+            <div class="topbar-actions">
+              <button class="topbar-btn" aria-label="Notifications">
+                <i data-lucide="bell" class="topbar-btn-icon"></i>
+                <span class="notification-badge"></span>
+              </button>
+              <div class="topbar-cta">
+                <button class="btn btn-primary btn-sm" onclick="return false;">
+                  <i data-lucide="plus" class="btn-icon"></i>
+                  <span>New Task</span>
+                </button>
+              </div>
+            </div>
+          </header>
+
+          <!-- Workspace Header -->
+          <div class="workspace-header">
+            <div>
+              <div class="workspace-breadcrumbs">
+                <span>Projects</span> / <span class="active-crumb">KaryaFlow Platform</span>
+              </div>
+              <h3 class="workspace-title">Sprint 04: Production Hardening</h3>
+            </div>
+            <div class="workspace-actions">
+              <div class="avatar-stack">
+                <span class="mini-avatar av-1" title="Lead">SV</span>
+                <span class="mini-avatar av-2" title="Member">AR</span>
+                <span class="mini-avatar av-3" title="Member">MD</span>
+                <span class="mini-avatar av-4">+2</span>
+              </div>
+              <span class="btn-role-badge">Lead Access</span>
+            </div>
+          </div>
+
+          <!-- Summary Stats Cards -->
+          <div class="preview-metrics-row">
+            <div class="metric-card">
+              <div class="metric-info">
+                <span class="metric-title">Active Tasks</span>
+                <span class="metric-number">24</span>
+              </div>
+              <div class="metric-icon-box box-amber">
+                <i data-lucide="layers" class="metric-icon"></i>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-info">
+                <span class="metric-title">Completed Tasks</span>
+                <span class="metric-number">18</span>
+              </div>
+              <div class="metric-icon-box box-green">
+                <i data-lucide="check-circle-2" class="metric-icon"></i>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-info">
+                <span class="metric-title">Overall Progress</span>
+                <span class="metric-number">75%</span>
+              </div>
+              <div class="metric-icon-box box-terracotta">
+                <i data-lucide="trending-up" class="metric-icon"></i>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-info">
+                <span class="metric-title">Active Members</span>
+                <span class="metric-number">6</span>
+              </div>
+              <div class="metric-icon-box box-sand">
+                <i data-lucide="users" class="metric-icon"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Realistic Task Table / Kanban Stream -->
+          <div class="preview-table-container">
+            <div class="table-header-row">
+              <h4 class="table-title">Recent Tasks & Assignments</h4>
+              <span class="table-subinfo">Showing 4 of 24 tasks</span>
+            </div>
+            <div class="table-scroll-wrapper">
+              <table class="preview-table">
+                <thead>
+                  <tr>
+                    <th>Task Details</th>
+                    <th>Assigned To</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Deadline</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <div class="table-task-cell">
+                        <i data-lucide="check-circle" class="status-cell-icon completed"></i>
+                        <div>
+                          <span class="cell-task-title">Setup role-based permission decorators</span>
+                          <span class="cell-task-meta">Security &bull; #KF-104</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="table-assignee">
+                        <span class="table-avatar">SV</span>
+                        <span>Sahil (Lead)</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="priority-pill priority-high">High</span>
+                    </td>
+                    <td>
+                      <span class="status-pill pill-done">Done</span>
+                    </td>
+                    <td class="text-secondary">Oct 28</td>
+                  </tr>
+
+                  <tr>
+                    <td>
+                      <div class="table-task-cell">
+                        <i data-lucide="clock" class="status-cell-icon in-progress"></i>
+                        <div>
+                          <span class="cell-task-title">Design warm aesthetic hero & responsive layout</span>
+                          <span class="cell-task-meta">Frontend &bull; #KF-109</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="table-assignee">
+                        <span class="table-avatar av-2">AR</span>
+                        <span>Aanya R.</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="priority-pill priority-medium">Medium</span>
+                    </td>
+                    <td>
+                      <span class="status-pill pill-progress">In Progress</span>
+                    </td>
+                    <td class="text-secondary">Today</td>
+                  </tr>
+
+                  <tr>
+                    <td>
+                      <div class="table-task-cell">
+                        <i data-lucide="circle" class="status-cell-icon todo"></i>
+                        <div>
+                          <span class="cell-task-title">Configure project member invitation flow</span>
+                          <span class="cell-task-meta">Backend &bull; #KF-112</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="table-assignee">
+                        <span class="table-avatar av-3">MD</span>
+                        <span>Mihir D.</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="priority-pill priority-high">High</span>
+                    </td>
+                    <td>
+                      <span class="status-pill pill-todo">To Do</span>
+                    </td>
+                    <td class="text-secondary">Tomorrow</td>
+                  </tr>
+
+                  <tr>
+                    <td>
+                      <div class="table-task-cell">
+                        <i data-lucide="circle" class="status-cell-icon todo"></i>
+                        <div>
+                          <span class="cell-task-title">Audit accessibility & responsive breakpoints</span>
+                          <span class="cell-task-meta">QA &bull; #KF-115</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="table-assignee">
+                        <span class="table-avatar av-1">SV</span>
+                        <span>Sahil (Lead)</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="priority-pill priority-low">Normal</span>
+                    </td>
+                    <td>
+                      <span class="status-pill pill-todo">To Do</span>
+                    </td>
+                    <td class="text-secondary">Nov 2</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== F. TEAMWORK & FLOW SECTION ======================== -->
+<section class="teamwork-section" id="teamwork">
+  <div class="section-container">
+    <div class="teamwork-grid">
+      <!-- Text Narrative Column -->
+      <div class="teamwork-content">
+        <div class="section-tag">
+          <i data-lucide="heart-handshake" class="tag-icon"></i>
+          <span>Built for Humans</span>
+        </div>
+        <h2 class="section-title">
+          Great Work Happens When Everyone Moves Together.
+        </h2>
+        <p class="section-subtitle">
+          Projects succeed when responsibilities are clear. With KaryaFlow, leaders orchestrate with confidence, and team members know exactly where to direct their energy without second-guessing priorities.
+        </p>
+
+        <div class="teamwork-highlights">
+          <div class="highlight-item">
+            <div class="highlight-icon-box">
+              <i data-lucide="check-circle" class="h-icon"></i>
+            </div>
+            <div>
+              <h4 class="h-title">Uncompromising Clarity</h4>
+              <p class="h-desc">Every team member wakes up with their personal task agenda clearly laid out.</p>
+            </div>
+          </div>
+
+          <div class="highlight-item">
+            <div class="highlight-icon-box">
+              <i data-lucide="lock" class="h-icon"></i>
+            </div>
+            <div>
+              <h4 class="h-title">Protected Boundaries</h4>
+              <p class="h-desc">Role-based controls prevent accidental edits to project timelines or other members’ tasks.</p>
+            </div>
+          </div>
+
+          <div class="highlight-item">
+            <div class="highlight-icon-box">
+              <i data-lucide="activity" class="h-icon"></i>
+            </div>
+            <div>
+              <h4 class="h-title">Live Momentum</h4>
+              <p class="h-desc">When a member marks a task complete, leaders instantly see sprint velocity update.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Visual Flow Graphic Column -->
+      <div class="teamwork-visual">
+        <div class="collaboration-board">
+          <!-- Lead Card -->
+          <div class="collab-node node-lead">
+            <div class="node-header">
+              <div class="node-avatar-box">
+                <i data-lucide="crown" class="node-crown"></i>
+              </div>
+              <div class="node-meta">
+                <span class="node-role">Project Leader</span>
+                <span class="node-title">Plans & Oversees</span>
+              </div>
+            </div>
+            <div class="node-task-sample">
+              <i data-lucide="plus-circle" class="sample-icon"></i>
+              <span>Assigns: "Review Security Architecture"</span>
+            </div>
+          </div>
+
+          <!-- Flowing Connection Line with Pulsing Pulse -->
+          <div class="flow-connector" aria-hidden="true">
+            <div class="connector-line"></div>
+            <div class="connector-pulse"></div>
+            <span class="connector-label">Delegates &bull; Empowers</span>
+          </div>
+
+          <!-- Member Card -->
+          <div class="collab-node node-member">
+            <div class="node-header">
+              <div class="node-avatar-box member-bg">
+                <i data-lucide="user" class="node-user"></i>
+              </div>
+              <div class="node-meta">
+                <span class="node-role">Project Member</span>
+                <span class="node-title">Executes & Delivers</span>
+              </div>
+            </div>
+            <div class="node-task-sample member-sample">
+              <i data-lucide="check-circle-2" class="sample-icon success"></i>
+              <span>Updates: "Task Completed & Submitted"</span>
+            </div>
+          </div>
+
+          <!-- Bottom floating synergy card -->
+          <div class="collab-synergy-pill">
+            <i data-lucide="zap" class="synergy-icon"></i>
+            <span>Zero friction &bull; 100% sprint alignment</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== G. CALL TO ACTION SECTION ======================== -->
+<section class="cta-section" id="cta">
+  <div class="section-container">
+    <div class="cta-card">
+      <div class="cta-background-pattern" aria-hidden="true"></div>
+      <div class="cta-content">
+        <div class="cta-tag">
+          <i data-lucide="sparkles" class="cta-tag-icon"></i>
+          <span>Start Organizing Today</span>
+        </div>
+        <h2 class="cta-title">
+          Ready to Bring Your Work Into Flow?
+        </h2>
+        <p class="cta-subtitle">
+          Start organizing your projects, empowering your contributors, and helping your team work better together.
+        </p>
+
+        <div class="cta-action-group">
+          <!-- Backend placeholder link -->
+          <a href="#signup-placeholder" class="btn btn-cta-primary btn-lg">
+            <span>Get Started</span>
+            <i data-lucide="arrow-right" class="btn-icon"></i>
+          </a>
+          <a href="#preview" class="btn btn-cta-ghost btn-lg">
+            <span>View Preview</span>
+          </a>
+        </div>
+
+        <div class="cta-reassurances">
+          <div class="reassurance-item">
+            <i data-lucide="check" class="check-tiny"></i>
+            <span>Simple project setup</span>
+          </div>
+          <div class="reassurance-item">
+            <i data-lucide="check" class="check-tiny"></i>
+            <span>Role-based team spaces</span>
+          </div>
+          <div class="reassurance-item">
+            <i data-lucide="check" class="check-tiny"></i>
+            <span>Built for modern teams</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
