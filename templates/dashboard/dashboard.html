@@ -1,0 +1,669 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  
+  <title>Dashboard — KaryaFlow</title>
+  <meta name="description" content="KaryaFlow Workspace Dashboard. Manage projects, tasks, and team collaborations.">
+  <meta name="theme-color" content="#FAF7F2">
+
+  <!-- Favicon SVG -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none'><rect width='32' height='32' rx='8' fill='%23C8754D'/><path d='M9 16L14 21L23 11' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/><circle cx='23' cy='21' r='2' fill='white'/></svg>">
+
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Core & Dashboard Stylesheets -->
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+</head>
+<body class="dashboard-shell">
+
+  <!-- Mobile Drawer Backdrop Overlay -->
+  <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
+
+  <!-- ======================== 1. SIDEBAR NAVIGATION ======================== -->
+  <aside class="dashboard-sidebar" id="dashboardSidebar">
+    
+    <!-- Sidebar Header & Brand -->
+    <div class="sidebar-header">
+      <a href="{% url 'home' %}" class="brand-logo" aria-label="KaryaFlow Home">
+        <div class="logo-symbol small">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 12C4 7.58172 7.58172 4 12 4C14.5 4 16.7 5.15 18.2 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M20 12C20 16.4183 16.4183 20 12 20C9.5 20 7.3 18.85 5.8 17" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="12" cy="12" r="3" fill="currentColor"/>
+            <path d="M12 6V3M12 21V18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="brand-text">Karya<span>Flow</span></span>
+      </a>
+
+      <!-- Mobile Close Trigger -->
+      <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Close sidebar">
+        <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+      </button>
+    </div>
+
+    <!-- Navigation Links -->
+    <nav class="sidebar-nav">
+      <span class="sidebar-section-title">Workspace</span>
+      
+      <a href="{% url 'dashboard' %}" class="sidebar-link active">
+        <i data-lucide="layout-dashboard" class="sidebar-icon"></i>
+        <span>Dashboard</span>
+      </a>
+
+      <a href="{% url 'my_projects' %}" class="sidebar-link">
+        <i data-lucide="folder-kanban" class="sidebar-icon"></i>
+        <span>My Projects</span>
+        {% if stats.total_projects %}
+        <span class="sidebar-badge">{{ stats.total_projects }}</span>
+        {% elif preview_mode %}
+        <span class="sidebar-badge">2</span>
+        {% endif %}
+      </a>
+
+      <a href="{% url 'my_tasks' %}" class="sidebar-link">
+        <i data-lucide="check-square" class="sidebar-icon"></i>
+        <span>My Tasks</span>
+        {% if stats.active_tasks %}
+        <span class="sidebar-badge highlight">{{ stats.active_tasks }}</span>
+        {% elif preview_mode %}
+        <span class="sidebar-badge highlight">3</span>
+        {% endif %}
+      </a>
+
+      <span class="sidebar-section-title">Preferences</span>
+
+      <a href="{% url 'profile' %}" class="sidebar-link">
+        <i data-lucide="user-cog" class="sidebar-icon"></i>
+        <span>Profile / Settings</span>
+      </a>
+    </nav>
+
+    <!-- Sidebar Footer / Authenticated User Profile -->
+    <div class="sidebar-footer">
+      <div class="user-profile-menu">
+        <a href="{% url 'profile' %}" class="user-info-row" style="text-decoration: none; color: inherit;" title="Manage your account">
+          <div class="user-avatar-pill">
+            {% if user.is_authenticated and user.first_name %}
+              {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}
+            {% elif user.is_authenticated and user.username %}
+              {{ user.username|slice:":2"|upper }}
+            {% else %}
+              SV
+            {% endif %}
+          </div>
+          <div class="user-text-meta">
+            <span class="user-display-name">
+              {% if user.is_authenticated %}
+                {{ user.get_full_name|default:user.username }}
+              {% else %}
+                Sahil Verma
+              {% endif %}
+            </span>
+            <span class="user-display-email">
+              {% if user.is_authenticated %}
+                {{ user.email|default:user.username }}
+              {% else %}
+                sahil@karyaflow.io
+              {% endif %}
+            </span>
+          </div>
+        </a>
+
+        <a href="{% url 'login' %}" class="logout-icon-btn" title="Sign out" aria-label="Sign out">
+          <i data-lucide="log-out" style="width: 17px; height: 17px;"></i>
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ======================== 2. MAIN WORKSPACE AREA ======================== -->
+  <div class="dashboard-main">
+
+    <!-- Workspace Topbar Header -->
+    <header class="dashboard-topbar">
+      <div class="topbar-left">
+        <!-- Mobile Drawer Toggle -->
+        <button class="topbar-mobile-toggle" id="topbarMobileToggle" aria-label="Open sidebar menu">
+          <i data-lucide="menu" style="width: 20px; height: 20px;"></i>
+        </button>
+
+        <div class="topbar-greeting-wrap">
+          <h1 class="topbar-greeting">
+            Good morning, 
+            {% if user.is_authenticated and user.first_name %}
+              {{ user.first_name }}!
+            {% elif user.is_authenticated and user.username %}
+              {{ user.username }}!
+            {% else %}
+              Sahil!
+            {% endif %}
+          </h1>
+          <p class="topbar-subtext">Here's what's happening across your projects and tasks.</p>
+        </div>
+      </div>
+
+      <div class="topbar-right">
+        <!-- Date pill -->
+        <div class="topbar-date-pill">
+          <i data-lucide="calendar" class="topbar-date-icon"></i>
+          <span>{{ current_date|default:"Today, Oct 30" }}</span>
+        </div>
+
+        <!-- Create Project Action (Rendered if user has project creation permission) -->
+        {% if can_create_project or can_create_project is None or preview_mode %}
+        <button class="btn btn-primary" id="btnCreateProject" onclick="alert('Backend Integration: Trigger create project modal / route');">
+          <i data-lucide="plus" class="btn-icon"></i>
+          <span>Create Project</span>
+        </button>
+        {% endif %}
+      </div>
+    </header>
+
+    <!-- Dashboard Content Body -->
+    <main class="dashboard-content-body">
+
+      <!-- ======================== 3. SUMMARY STATISTICS CARDS ======================== -->
+      <section class="stats-overview-grid" aria-label="Workspace Statistics">
+        
+        <!-- Total Projects -->
+        <div class="stat-metric-card">
+          <div class="stat-metric-content">
+            <span class="stat-metric-count">
+              {% if stats.total_projects is not None %}
+                {{ stats.total_projects }}
+              {% elif preview_mode %}
+                4
+              {% else %}
+                0
+              {% endif %}
+            </span>
+            <span class="stat-metric-label">Total Projects</span>
+          </div>
+          <div class="stat-icon-wrapper theme-terracotta">
+            <i data-lucide="folder-kanban" class="stat-icon"></i>
+          </div>
+        </div>
+
+        <!-- Active Tasks -->
+        <div class="stat-metric-card">
+          <div class="stat-metric-content">
+            <span class="stat-metric-count">
+              {% if stats.active_tasks is not None %}
+                {{ stats.active_tasks }}
+              {% elif preview_mode %}
+                8
+              {% else %}
+                0
+              {% endif %}
+            </span>
+            <span class="stat-metric-label">Active Tasks</span>
+          </div>
+          <div class="stat-icon-wrapper theme-amber">
+            <i data-lucide="clock" class="stat-icon"></i>
+          </div>
+        </div>
+
+        <!-- Completed Tasks -->
+        <div class="stat-metric-card">
+          <div class="stat-metric-content">
+            <span class="stat-metric-count">
+              {% if stats.completed_tasks is not None %}
+                {{ stats.completed_tasks }}
+              {% elif preview_mode %}
+                14
+              {% else %}
+                0
+              {% endif %}
+            </span>
+            <span class="stat-metric-label">Completed Tasks</span>
+          </div>
+          <div class="stat-icon-wrapper theme-green">
+            <i data-lucide="check-circle-2" class="stat-icon"></i>
+          </div>
+        </div>
+
+        <!-- Pending Tasks -->
+        <div class="stat-metric-card">
+          <div class="stat-metric-content">
+            <span class="stat-metric-count">
+              {% if stats.pending_tasks is not None %}
+                {{ stats.pending_tasks }}
+              {% elif preview_mode %}
+                3
+              {% else %}
+                0
+              {% endif %}
+            </span>
+            <span class="stat-metric-label">Pending Tasks</span>
+          </div>
+          <div class="stat-icon-wrapper theme-sand">
+            <i data-lucide="list-todo" class="stat-icon"></i>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ======================== 4. MY PROJECTS SECTION (Adaptive Role-Aware) ======================== -->
+      <section class="dashboard-section" id="projects-section" aria-label="My Projects">
+        <div class="dashboard-section-header">
+          <div class="section-heading-group">
+            <h2 class="section-main-title">My Projects</h2>
+            <span class="section-counter-badge">
+              {% if projects %}
+                {{ projects|length }}
+              {% elif preview_mode %}
+                2
+              {% else %}
+                0
+              {% endif %}
+            </span>
+          </div>
+        </div>
+
+        <!-- Real Backend Projects Loop -->
+        {% if projects %}
+        <div class="projects-cards-grid">
+          {% for project in projects %}
+          <div class="project-card">
+            <div class="project-card-header">
+              <div class="project-title-group">
+                <h3 class="project-name">{{ project.name }}</h3>
+              </div>
+              
+              <!-- Role Badge (Per-project role determination) -->
+              {% if project.is_leader or project.user_role|lower == 'leader' %}
+              <span class="role-badge role-leader" title="You are the Project Leader">
+                <i data-lucide="crown" class="role-badge-icon"></i>
+                <span>Leader</span>
+              </span>
+              {% else %}
+              <span class="role-badge role-member" title="You are a Project Member">
+                <i data-lucide="user" class="role-badge-icon"></i>
+                <span>Member</span>
+              </span>
+              {% endif %}
+            </div>
+
+            <p class="project-description">{{ project.description|default:"No project description specified." }}</p>
+
+            <!-- Progress Bar -->
+            <div class="project-progress-wrap">
+              <div class="progress-meta-row">
+                <span class="progress-label">Progress ({{ project.completed_tasks|default:0 }}/{{ project.total_tasks|default:0 }} tasks)</span>
+                <span class="progress-value">{{ project.progress|default:0 }}%</span>
+              </div>
+              <div class="project-progress-track">
+                <div class="project-progress-bar" style="width: {{ project.progress|default:0 }}%;"></div>
+              </div>
+            </div>
+
+            <!-- Card Footer: Actions adapt based on role -->
+            <div class="project-card-footer">
+              <div class="project-meta-members">
+                <i data-lucide="users" style="width: 15px; height: 15px; color: var(--text-muted);"></i>
+                <span>{{ project.member_count|default:1 }} Members</span>
+              </div>
+
+              <div class="project-actions-group">
+                {% if project.is_leader or project.user_role|lower == 'leader' %}
+                  <!-- Leader Actions: Manage Project, Members, Create Task -->
+                  <button class="btn-project-action secondary" title="Manage project settings" onclick="alert('Backend Integration: Manage Project #{{ project.id }}');">
+                    <i data-lucide="settings" style="width: 13px; height: 13px;"></i>
+                    <span>Manage</span>
+                  </button>
+                  <button class="btn-project-action secondary" title="Invite & manage members" onclick="alert('Backend Integration: Manage Members #{{ project.id }}');">
+                    <i data-lucide="user-plus" style="width: 13px; height: 13px;"></i>
+                    <span>Members</span>
+                  </button>
+                  <button class="btn-project-action primary" title="Create a new task" onclick="alert('Backend Integration: Create Task for Project #{{ project.id }}');">
+                    <i data-lucide="plus" style="width: 13px; height: 13px;"></i>
+                    <span>Add Task</span>
+                  </button>
+                {% else %}
+                  <!-- Member Action: View Project Only -->
+                  <a href="{% if project.id %}{% url 'project_detail' project.id %}{% else %}#{% endif %}" class="btn-project-action secondary" title="View project overview">
+                    <i data-lucide="external-link" style="width: 13px; height: 13px;"></i>
+                    <span>View Project</span>
+                  </a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        {% elif preview_mode %}
+        <!-- Standalone Design Preview (Demonstrating Sahil as Leader in Project A & Member in Project B) -->
+        <div class="projects-cards-grid">
+          
+          <!-- Project A: Sahil is LEADER -->
+          <div class="project-card">
+            <div class="project-card-header">
+              <div class="project-title-group">
+                <h3 class="project-name">KaryaFlow Platform Hardening</h3>
+              </div>
+              <span class="role-badge role-leader" title="You are the Project Leader">
+                <i data-lucide="crown" class="role-badge-icon"></i>
+                <span>Leader</span>
+              </span>
+            </div>
+
+            <p class="project-description">
+              Production stabilization, authentication workflows, responsive layouts, and accessibility audit.
+            </p>
+
+            <div class="project-progress-wrap">
+              <div class="progress-meta-row">
+                <span class="progress-label">Progress (14/18 tasks)</span>
+                <span class="progress-value">78%</span>
+              </div>
+              <div class="project-progress-track">
+                <div class="project-progress-bar" style="width: 78%;"></div>
+              </div>
+            </div>
+
+            <div class="project-card-footer">
+              <div class="project-meta-members">
+                <i data-lucide="users" style="width: 15px; height: 15px; color: var(--text-muted);"></i>
+                <span>5 Members</span>
+              </div>
+
+              <!-- Leader-Specific Controls -->
+              <div class="project-actions-group">
+                <a href="{% url 'project_detail' 1 %}" class="btn-project-action secondary" title="View workspace">
+                  <i data-lucide="external-link" style="width: 13px; height: 13px;"></i>
+                  <span>View</span>
+                </a>
+                <button class="btn-project-action secondary" title="Manage project settings">
+                  <i data-lucide="settings" style="width: 13px; height: 13px;"></i>
+                  <span>Manage</span>
+                </button>
+                <button class="btn-project-action secondary" title="Invite & manage members">
+                  <i data-lucide="user-plus" style="width: 13px; height: 13px;"></i>
+                  <span>Members</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Project B: Sahil is MEMBER -->
+          <div class="project-card">
+            <div class="project-card-header">
+              <div class="project-title-group">
+                <h3 class="project-name">Marketing & Brand Guidelines</h3>
+              </div>
+              <span class="role-badge role-member" title="You are a Project Member">
+                <i data-lucide="user" class="role-badge-icon"></i>
+                <span>Member</span>
+              </span>
+            </div>
+
+            <p class="project-description">
+              Design visual brand assets, icons, landing page typography standards, and marketing collateral.
+            </p>
+
+            <div class="project-progress-wrap">
+              <div class="progress-meta-row">
+                <span class="progress-label">Progress (5/11 tasks)</span>
+                <span class="progress-value">45%</span>
+              </div>
+              <div class="project-progress-track">
+                <div class="project-progress-bar" style="width: 45%;"></div>
+              </div>
+            </div>
+
+            <div class="project-card-footer">
+              <div class="project-meta-members">
+                <i data-lucide="users" style="width: 15px; height: 15px; color: var(--text-muted);"></i>
+                <span>4 Members</span>
+              </div>
+
+              <!-- Member-Specific Control: View Only -->
+              <div class="project-actions-group">
+                <a href="{% url 'project_detail' 2 %}" class="btn-project-action secondary" title="View project overview">
+                  <i data-lucide="external-link" style="width: 13px; height: 13px;"></i>
+                  <span>View Project</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        {% else %}
+        <!-- Empty State: No Projects -->
+        <div class="empty-state-box">
+          <div class="empty-state-icon-wrap">
+            <i data-lucide="folder-plus" class="empty-state-svg"></i>
+          </div>
+          <h3 class="empty-state-title">No projects yet</h3>
+          <p class="empty-state-desc">Create your first project and bring your team together in seamless flow.</p>
+          <button class="btn btn-primary" onclick="alert('Backend Integration: Create Project');">
+            <i data-lucide="plus" class="btn-icon"></i>
+            <span>Create First Project</span>
+          </button>
+        </div>
+        {% endif %}
+      </section>
+
+      <!-- ======================== 5. DUAL COLUMN: MY TASKS & RECENT ACTIVITY ======================== -->
+      <div class="dashboard-split-columns">
+        
+        <!-- Column A: My Assigned Tasks -->
+        <section class="dashboard-panel" id="tasks-section" aria-label="Assigned Tasks">
+          <div class="dashboard-section-header">
+            <div class="section-heading-group">
+              <h2 class="section-main-title">My Tasks</h2>
+              <span class="section-counter-badge">
+                {% if tasks %}
+                  {{ tasks|length }}
+                {% elif preview_mode %}
+                  3
+                {% else %}
+                  0
+                {% endif %}
+              </span>
+            </div>
+          </div>
+
+          <!-- Real Backend Tasks Loop -->
+          {% if tasks %}
+          <div class="tasks-list-container">
+            {% for task in tasks %}
+            <div class="task-item-card {% if task.status == 'completed' %}is-completed{% elif task.status == 'in_progress' %}is-in-progress{% endif %}">
+              <div class="task-item-left">
+                <!-- Status checkbox toggle button -->
+                <button class="task-status-btn" title="Toggle status" aria-label="Update task status">
+                  <i data-lucide="check" style="width: 12px; height: 12px;"></i>
+                </button>
+                <div class="task-info-content">
+                  <span class="task-main-title">{{ task.title }}</span>
+                  <div class="task-sub-meta">
+                    <span class="task-project-pill">{{ task.project_name }}</span>
+                    <span>&bull;</span>
+                    <span>Due {{ task.deadline|default:"Not specified" }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="task-item-right">
+                <span class="priority-tag {{ task.priority|lower|default:'medium' }}">{{ task.priority|title|default:"Medium" }}</span>
+                <span class="status-badge-tag {{ task.status|lower }}">{{ task.status|title }}</span>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+
+          {% elif preview_mode %}
+          <!-- Preview Mode Tasks -->
+          <div class="tasks-list-container">
+            <!-- Task 1 -->
+            <div class="task-item-card is-in-progress">
+              <div class="task-item-left">
+                <button class="task-status-btn" title="Mark as completed">
+                  <i data-lucide="check" style="width: 12px; height: 12px;"></i>
+                </button>
+                <div class="task-info-content">
+                  <span class="task-main-title">Audit accessibility &amp; responsive breakpoints</span>
+                  <div class="task-sub-meta">
+                    <span class="task-project-pill">KaryaFlow Platform Hardening</span>
+                    <span>&bull;</span>
+                    <span>Due Tomorrow, 5:00 PM</span>
+                  </div>
+                </div>
+              </div>
+              <div class="task-item-right">
+                <span class="priority-tag high">High</span>
+                <span class="status-badge-tag in-progress">In Progress</span>
+              </div>
+            </div>
+
+            <!-- Task 2 -->
+            <div class="task-item-card">
+              <div class="task-item-left">
+                <button class="task-status-btn" title="Mark as completed">
+                  <i data-lucide="check" style="width: 12px; height: 12px;"></i>
+                </button>
+                <div class="task-info-content">
+                  <span class="task-main-title">Export brand logo variants in SVG format</span>
+                  <div class="task-sub-meta">
+                    <span class="task-project-pill">Marketing &amp; Brand Guidelines</span>
+                    <span>&bull;</span>
+                    <span>Due Nov 04</span>
+                  </div>
+                </div>
+              </div>
+              <div class="task-item-right">
+                <span class="priority-tag medium">Medium</span>
+                <span class="status-badge-tag pending">Pending</span>
+              </div>
+            </div>
+
+            <!-- Task 3 -->
+            <div class="task-item-card is-completed">
+              <div class="task-item-left">
+                <button class="task-status-btn" title="Mark as pending">
+                  <i data-lucide="check" style="width: 12px; height: 12px;"></i>
+                </button>
+                <div class="task-info-content">
+                  <span class="task-main-title">Configure Django session &amp; CSRF protection</span>
+                  <div class="task-sub-meta">
+                    <span class="task-project-pill">KaryaFlow Platform Hardening</span>
+                    <span>&bull;</span>
+                    <span>Completed</span>
+                  </div>
+                </div>
+              </div>
+              <div class="task-item-right">
+                <span class="priority-tag low">Normal</span>
+                <span class="status-badge-tag completed">Completed</span>
+              </div>
+            </div>
+          </div>
+
+          {% else %}
+          <!-- Empty State: No Tasks -->
+          <div class="empty-state-box">
+            <div class="empty-state-icon-wrap">
+              <i data-lucide="check-circle" class="empty-state-svg"></i>
+            </div>
+            <h3 class="empty-state-title">All caught up!</h3>
+            <p class="empty-state-desc">You don't have any assigned tasks pending right now.</p>
+          </div>
+          {% endif %}
+        </section>
+
+        <!-- Column B: Recent Activity Stream -->
+        <section class="dashboard-panel" id="activity-section" aria-label="Recent Activity">
+          <div class="dashboard-section-header">
+            <div class="section-heading-group">
+              <h2 class="section-main-title">Recent Activity</h2>
+            </div>
+          </div>
+
+          <!-- Real Backend Activities Loop -->
+          {% if activities %}
+          <div class="activity-stream">
+            {% for act in activities %}
+            <div class="activity-row">
+              <div class="activity-icon-bubble">
+                <i data-lucide="{{ act.icon|default:'activity' }}" class="activity-bubble-svg"></i>
+              </div>
+              <div class="activity-info-box">
+                <span class="activity-headline">{{ act.title }}</span>
+                <span class="activity-desc">{{ act.description }}</span>
+                <span class="activity-timestamp">{{ act.timestamp }}</span>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+
+          {% elif preview_mode %}
+          <!-- Preview Mode Activities -->
+          <div class="activity-stream">
+            <div class="activity-row">
+              <div class="activity-icon-bubble">
+                <i data-lucide="check-circle-2" class="activity-bubble-svg"></i>
+              </div>
+              <div class="activity-info-box">
+                <span class="activity-headline">Task Completed</span>
+                <span class="activity-desc">Aanya R. finished "Design role permission matrix"</span>
+                <span class="activity-timestamp">25 minutes ago</span>
+              </div>
+            </div>
+
+            <div class="activity-row">
+              <div class="activity-icon-bubble">
+                <i data-lucide="folder-plus" class="activity-bubble-svg"></i>
+              </div>
+              <div class="activity-info-box">
+                <span class="activity-headline">Project Created</span>
+                <span class="activity-desc">You initialized "KaryaFlow Platform Hardening"</span>
+                <span class="activity-timestamp">2 hours ago</span>
+              </div>
+            </div>
+
+            <div class="activity-row">
+              <div class="activity-icon-bubble">
+                <i data-lucide="user-plus" class="activity-bubble-svg"></i>
+              </div>
+              <div class="activity-info-box">
+                <span class="activity-headline">New Member Added</span>
+                <span class="activity-desc">Mihir D. joined Marketing &amp; Brand Guidelines</span>
+                <span class="activity-timestamp">Yesterday</span>
+              </div>
+            </div>
+          </div>
+
+          {% else %}
+          <!-- Empty State: No Activity -->
+          <div class="empty-state-box">
+            <div class="empty-state-icon-wrap">
+              <i data-lucide="activity" class="empty-state-svg"></i>
+            </div>
+            <h3 class="empty-state-title">No recent activity</h3>
+            <p class="empty-state-desc">Project updates and team actions will appear here as they happen.</p>
+          </div>
+          {% endif %}
+        </section>
+
+      </div>
+
+    </main>
+  </div>
+
+  <script src="{% static 'js/dashboard.js' %}"></script>
+</body>
+</html>

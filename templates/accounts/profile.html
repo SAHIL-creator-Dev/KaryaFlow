@@ -1,0 +1,291 @@
+{% extends 'app_base.html' %}
+{% load static %}
+
+{% block title %}Profile &amp; Settings — KaryaFlow{% endblock %}
+{% block nav_profile %}active{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/profile.css' %}">
+{% endblock %}
+
+{% block topbar_heading %}
+<h1 class="topbar-greeting">Profile &amp; Settings</h1>
+<p class="topbar-subtext">Manage your personal information, profile avatar, and account security.</p>
+{% endblock %}
+
+{% block content %}
+<!-- Django Messages / Alert Banner -->
+{% if messages %}
+<div class="django-messages" style="margin-bottom: 1.5rem;">
+  {% for message in messages %}
+  <div class="alert-banner {{ message.tags }}">
+    <i data-lucide="info" class="alert-icon"></i>
+    <span>{{ message }}</span>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="profile-page-grid">
+  
+  <!-- ======================== LEFT COLUMN: PROFILE IDENTITY CARD ======================== -->
+  <aside class="profile-identity-card" aria-label="Profile Card">
+    <!-- Big Avatar with Edit overlay -->
+    <div class="avatar-upload-wrapper">
+      <div class="profile-big-avatar" id="profileAvatarDisplay">
+        {% if user.profile_picture %}
+          <img src="{{ user.profile_picture.url }}" alt="{{ user.get_full_name|default:user.username }}">
+        {% elif user.first_name %}
+          {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}
+        {% elif user.username %}
+          {{ user.username|slice:":2"|upper }}
+        {% else %}
+          SV
+        {% endif %}
+      </div>
+
+      <!-- Avatar Picker Trigger -->
+      <button type="button" class="avatar-edit-trigger" title="Upload new photo" aria-label="Upload new photo">
+        <i data-lucide="camera" style="width: 15px; height: 15px;"></i>
+      </button>
+    </div>
+
+    <!-- Hidden file input triggered by avatar-edit-trigger -->
+    <input type="file" id="avatarFileInput" name="profile_image" accept="image/*" style="display: none;">
+
+    <h2 class="profile-identity-name">
+      {% if user.is_authenticated and user.get_full_name %}
+        {{ user.get_full_name }}
+      {% else %}
+        Sahil Verma
+      {% endif %}
+    </h2>
+
+    <span class="profile-identity-username">
+      @{{ user.username|default:"sahilverma" }}
+    </span>
+
+    <span class="profile-identity-email">
+      {{ user.email|default:"sahil@karyaflow.io" }}
+    </span>
+
+    <!-- Metadata breakdown -->
+    <div class="profile-meta-list-block">
+      <div class="meta-row-item">
+        <span class="meta-row-label">
+          <i data-lucide="calendar" style="width: 14px; height: 14px;"></i>
+          <span>Member Since</span>
+        </span>
+        <span class="meta-row-value">
+          {{ user.date_joined|date:"M d, Y"|default:"October 2026" }}
+        </span>
+      </div>
+
+      <div class="meta-row-item">
+        <span class="meta-row-label">
+          <i data-lucide="clock" style="width: 14px; height: 14px;"></i>
+          <span>Last Login</span>
+        </span>
+        <span class="meta-row-value">
+          {{ user.last_login|date:"M d, H:i"|default:"Today, 21:30" }}
+        </span>
+      </div>
+
+      <div class="meta-row-item">
+        <span class="meta-row-label">
+          <i data-lucide="shield-check" style="width: 14px; height: 14px;"></i>
+          <span>Account Status</span>
+        </span>
+        <span class="meta-row-value" style="color: var(--status-success);">Active</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ======================== RIGHT COLUMN: SETTINGS PANELS ======================== -->
+  <div class="settings-panels-stack">
+    
+    <!-- 1. EDIT PROFILE FORM -->
+    <section class="settings-card" aria-labelledby="sectionEditProfileTitle">
+      <div class="settings-card-header">
+        <div class="settings-heading-group">
+          <h3 class="settings-card-title" id="sectionEditProfileTitle">
+            <i data-lucide="user" style="width: 18px; height: 18px; color: var(--accent-primary);"></i>
+            <span>Edit Profile</span>
+          </h3>
+          <p class="settings-card-desc">Update your personal information and public workspace identity.</p>
+        </div>
+      </div>
+
+      <form method="post" action="{% url 'profile' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_profile">
+
+        <div class="settings-form-grid">
+          <!-- First Name -->
+          <div class="form-group">
+            <label class="form-label" for="profileFirstName">First Name <span class="label-required">*</span></label>
+            <div class="form-control-wrap">
+              <input 
+                type="text" 
+                id="profileFirstName" 
+                name="first_name" 
+                class="form-input" 
+                value="{{ user.first_name|default:'Sahil' }}" 
+                required
+              >
+              <i data-lucide="user" class="form-control-icon"></i>
+            </div>
+          </div>
+
+          <!-- Last Name -->
+          <div class="form-group">
+            <label class="form-label" for="profileLastName">Last Name</label>
+            <div class="form-control-wrap">
+              <input 
+                type="text" 
+                id="profileLastName" 
+                name="last_name" 
+                class="form-input" 
+                value="{{ user.last_name|default:'Verma' }}"
+              >
+              <i data-lucide="user" class="form-control-icon"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-form-grid">
+          <!-- Username (Read-only or editable based on system) -->
+          <div class="form-group">
+            <label class="form-label" for="profileUsername">Username</label>
+            <div class="form-control-wrap">
+              <input 
+                type="text" 
+                id="profileUsername" 
+                name="username" 
+                class="form-input" 
+                value="{{ user.username|default:'sahilverma' }}" 
+                readonly
+                style="background-color: var(--bg-hover); cursor: not-allowed;"
+              >
+              <i data-lucide="at-sign" class="form-control-icon"></i>
+            </div>
+          </div>
+
+          <!-- Email Address -->
+          <div class="form-group">
+            <label class="form-label" for="profileEmail">Email Address <span class="label-required">*</span></label>
+            <div class="form-control-wrap">
+              <input 
+                type="email" 
+                id="profileEmail" 
+                name="email" 
+                class="form-input" 
+                value="{{ user.email|default:'sahil@karyaflow.io' }}" 
+                required
+              >
+              <i data-lucide="mail" class="form-control-icon"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions-bar">
+          <button type="submit" class="btn btn-primary">
+            <i data-lucide="check" class="btn-icon"></i>
+            <span>Save Profile</span>
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- 2. CHANGE PASSWORD SETTINGS (Standard Django Auth Integration) -->
+    <section class="settings-card" aria-labelledby="sectionChangePasswordTitle">
+      <div class="settings-card-header">
+        <div class="settings-heading-group">
+          <h3 class="settings-card-title" id="sectionChangePasswordTitle">
+            <i data-lucide="lock" style="width: 18px; height: 18px; color: var(--accent-primary);"></i>
+            <span>Account Security</span>
+          </h3>
+          <p class="settings-card-desc">Keep your workspace protected with a strong, secure password.</p>
+        </div>
+      </div>
+
+      <form method="post" action="{% url 'profile' %}">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="change_password">
+
+        <!-- Current Password -->
+        <div class="form-group">
+          <label class="form-label" for="currentPasswordInput">Current Password <span class="label-required">*</span></label>
+          <div class="form-control-wrap">
+            <input 
+              type="password" 
+              id="currentPasswordInput" 
+              name="old_password" 
+              class="form-input" 
+              placeholder="Enter current password" 
+              required
+            >
+            <i data-lucide="lock" class="form-control-icon"></i>
+            <button type="button" class="password-toggle-btn" aria-label="Toggle password visibility">
+              <i data-lucide="eye" style="width: 16px; height: 16px;"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="settings-form-grid">
+          <!-- New Password -->
+          <div class="form-group">
+            <label class="form-label" for="newPasswordInput">New Password <span class="label-required">*</span></label>
+            <div class="form-control-wrap">
+              <input 
+                type="password" 
+                id="newPasswordInput" 
+                name="new_password1" 
+                class="form-input" 
+                placeholder="At least 8 characters" 
+                required
+              >
+              <i data-lucide="key" class="form-control-icon"></i>
+              <button type="button" class="password-toggle-btn" aria-label="Toggle password visibility">
+                <i data-lucide="eye" style="width: 16px; height: 16px;"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Confirm New Password -->
+          <div class="form-group">
+            <label class="form-label" for="confirmPasswordInput">Confirm New Password <span class="label-required">*</span></label>
+            <div class="form-control-wrap">
+              <input 
+                type="password" 
+                id="confirmPasswordInput" 
+                name="new_password2" 
+                class="form-input" 
+                placeholder="Re-enter new password" 
+                required
+              >
+              <i data-lucide="key" class="form-control-icon"></i>
+              <button type="button" class="password-toggle-btn" aria-label="Toggle password visibility">
+                <i data-lucide="eye" style="width: 16px; height: 16px;"></i>
+              </button>
+            </div>
+            <div id="passMatchNotice" style="font-size: 0.775rem; margin-top: 0.35rem; display: none;"></div>
+          </div>
+        </div>
+
+        <div class="form-actions-bar">
+          <button type="submit" class="btn btn-primary">
+            <i data-lucide="shield-check" class="btn-icon"></i>
+            <span>Update Password</span>
+          </button>
+        </div>
+      </form>
+    </section>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'js/profile.js' %}"></script>
+{% endblock %}

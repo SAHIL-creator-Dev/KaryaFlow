@@ -1,0 +1,369 @@
+/* ==========================================================================
+   KaryaFlow Tasks Stylesheet (tasks.css)
+   Dedicated task management styles for My Tasks page
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Tasks Header & Filter Bar
+   -------------------------------------------------------------------------- */
+.tasks-header-banner {
+  margin-bottom: 2rem;
+}
+
+.tasks-toolbar-panel {
+  background: #FFFFFF;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.75rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.tasks-search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 260px;
+  max-width: 420px;
+}
+
+.tasks-search-input {
+  width: 100%;
+  height: 42px;
+  padding: 0.55rem 1rem 0.55rem 2.5rem;
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  color: var(--text-main);
+  background-color: var(--bg-primary);
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: all var(--transition-fast);
+}
+
+.tasks-search-input:focus {
+  background-color: #FFFFFF;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(200, 117, 77, 0.14);
+}
+
+.tasks-search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.tasks-filters-cluster {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.filter-badge-count {
+  font-size: 0.75rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-full);
+  background: var(--bg-accent-soft);
+  color: var(--accent-deep);
+  font-weight: 700;
+  margin-left: 0.25rem;
+}
+
+/* --------------------------------------------------------------------------
+   2. Status Counters Ribbon
+   -------------------------------------------------------------------------- */
+.tasks-status-ribbon {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.status-ribbon-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.status-ribbon-card:hover,
+.status-ribbon-card.active {
+  border-color: var(--accent-primary);
+  background: var(--bg-hover);
+  transform: translateY(-1px);
+}
+
+.status-ribbon-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.ribbon-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.ribbon-count {
+  font-size: 1.5rem;
+  font-weight: 800;
+  font-family: var(--font-heading);
+  color: var(--text-main);
+}
+
+.ribbon-indicator-pill {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ribbon-indicator-pill.all {
+  background: var(--bg-accent-soft);
+  color: var(--accent-primary);
+}
+
+.ribbon-indicator-pill.todo {
+  background: var(--status-info-bg);
+  color: var(--status-info);
+}
+
+.ribbon-indicator-pill.in-progress {
+  background: var(--status-warning-bg);
+  color: var(--status-warning);
+}
+
+.ribbon-indicator-pill.completed {
+  background: var(--status-success-bg);
+  color: var(--status-success);
+}
+
+/* --------------------------------------------------------------------------
+   3. My Tasks List Layout
+   -------------------------------------------------------------------------- */
+.my-tasks-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.my-task-row {
+  background: #FFFFFF;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.2rem 1.45rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+}
+
+.my-task-row:hover {
+  border-color: var(--border-accent);
+  box-shadow: var(--shadow-md);
+  transform: translateX(2px);
+}
+
+.my-task-row.is-completed {
+  background: #FAFAF8;
+  opacity: 0.82;
+}
+
+.my-task-row.is-completed .my-task-title {
+  text-decoration: line-through;
+  color: var(--text-secondary);
+}
+
+.my-task-primary {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Status Checkbox / Quick Toggle */
+.my-task-checkbox {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--border-color);
+  background: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  color: transparent;
+  transition: all var(--transition-fast);
+}
+
+.my-task-checkbox:hover {
+  border-color: var(--accent-primary);
+  background: var(--bg-accent-soft);
+}
+
+.my-task-row.is-completed .my-task-checkbox {
+  background: var(--status-success);
+  border-color: var(--status-success);
+  color: #FFFFFF;
+}
+
+.my-task-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.my-task-title {
+  font-size: 0.975rem;
+  font-weight: 700;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.35;
+}
+
+.my-task-sub-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  flex-wrap: wrap;
+}
+
+.my-task-project-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 600;
+  color: var(--accent-deep);
+  background: var(--bg-accent-soft);
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.775rem;
+}
+
+.my-task-date-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--text-muted);
+}
+
+.my-task-date-item.overdue {
+  color: #C81E1E;
+  font-weight: 700;
+}
+
+/* Secondary & Action Column (Status updater select for member) */
+.my-task-secondary {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.status-dropdown-member {
+  height: 36px;
+  padding: 0.35rem 1.85rem 0.35rem 0.75rem;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 700;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-color);
+  background-color: #FFFFFF;
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23777168' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  transition: all var(--transition-fast);
+}
+
+.status-dropdown-member.todo {
+  background-color: var(--status-info-bg);
+  color: var(--status-info);
+  border-color: #B8D6ED;
+}
+
+.status-dropdown-member.in_progress {
+  background-color: var(--status-warning-bg);
+  color: var(--status-warning);
+  border-color: #F7D5A4;
+}
+
+.status-dropdown-member.completed {
+  background-color: var(--status-success-bg);
+  color: var(--status-success);
+  border-color: #BCDFCA;
+}
+
+/* --------------------------------------------------------------------------
+   4. Responsive Breakpoints for My Tasks
+   -------------------------------------------------------------------------- */
+@media (max-width: 900px) {
+  .tasks-status-ribbon {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .tasks-toolbar-panel {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .tasks-search-wrap {
+    max-width: 100%;
+  }
+
+  .tasks-filters-cluster {
+    justify-content: space-between;
+  }
+
+  .my-task-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .my-task-secondary {
+    width: 100%;
+    justify-content: space-between;
+    padding-top: 0.75rem;
+    border-top: 1px dashed var(--border-light);
+  }
+}
+
+@media (max-width: 480px) {
+  .tasks-status-ribbon {
+    grid-template-columns: 1fr;
+  }
+}

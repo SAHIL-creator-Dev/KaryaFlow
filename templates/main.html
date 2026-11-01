@@ -65,9 +65,9 @@
 
       <!-- Desktop Action Buttons -->
       <div class="nav-actions">
-        <!-- Backend placeholder links for login & register -->
-        <a href="#login-placeholder" class="btn btn-ghost" title="Login to KaryaFlow">Log In</a>
-        <a href="#signup-placeholder" class="btn btn-primary" title="Get Started with KaryaFlow">
+        <!-- Auth routes -->
+        <a href="{% url 'login' %}" class="btn btn-ghost" title="Login to KaryaFlow">Log In</a>
+        <a href="{% url 'register' %}" class="btn btn-primary" title="Get Started with KaryaFlow">
           <span>Get Started</span>
           <i data-lucide="arrow-right" class="btn-icon"></i>
         </a>
@@ -92,8 +92,8 @@
           <li><a href="#teamwork" class="mobile-nav-link">Teamwork</a></li>
         </ul>
         <div class="mobile-actions">
-          <a href="#login-placeholder" class="btn btn-outline btn-block">Log In</a>
-          <a href="#signup-placeholder" class="btn btn-primary btn-block">Get Started Free</a>
+          <a href="{% url 'login' %}" class="btn btn-outline btn-block">Log In</a>
+          <a href="{% url 'register' %}" class="btn btn-primary btn-block">Get Started Free</a>
         </div>
       </div>
     </div>
@@ -154,8 +154,8 @@
           <div class="footer-col">
             <h4 class="footer-heading">Account</h4>
             <ul class="footer-links">
-              <li><a href="#login-placeholder">Sign In</a></li>
-              <li><a href="#signup-placeholder">Create Account</a></li>
+              <li><a href="{% url 'login' %}">Sign In</a></li>
+              <li><a href="{% url 'register' %}">Create Account</a></li>
               <li><a href="#about">About KaryaFlow</a></li>
             </ul>
           </div>

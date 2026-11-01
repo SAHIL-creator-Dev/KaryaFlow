@@ -1,0 +1,693 @@
+{% extends 'app_base.html' %}
+{% load static %}
+
+{% block title %}{{ project.name|default:"Project Details" }} — KaryaFlow{% endblock %}
+{% block nav_projects %}active{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/projects.css' %}">
+{% endblock %}
+
+{% block topbar_heading %}
+<h1 class="topbar-greeting">Project Workspace</h1>
+<p class="topbar-subtext">Manage tasks, track progress, and coordinate with team members.</p>
+{% endblock %}
+
+{% block topbar_actions %}
+{% if is_leader or preview_mode %}
+<!-- Leader Quick Action: Create Task -->
+<button class="btn btn-primary open-create-task-modal" id="btnTopbarCreateTask">
+  <i data-lucide="plus" class="btn-icon"></i>
+  <span>Add Task</span>
+</button>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<!-- ======================== 1. PROJECT HEADER & HERO ======================== -->
+<div class="project-detail-hero">
+  <!-- Back to My Projects link -->
+  <a href="{% url 'my_projects' %}" class="project-nav-back">
+    <i data-lucide="arrow-left" style="width: 15px; height: 15px;"></i>
+    <span>Back to My Projects</span>
+  </a>
+
+  <div class="project-header-main">
+    <div class="project-title-area">
+      <div class="project-headline-row">
+        <h2 class="project-main-heading">{{ project.name|default:"KaryaFlow Platform Hardening" }}</h2>
+        
+        <!-- Status Pill -->
+        <span class="project-status-pill {{ project.status|slugify|default:'in-progress' }}">
+          <span class="status-indicator-dot"></span>
+          {{ project.status|default:"In Progress" }}
+        </span>
+
+        <!-- Role Badge -->
+        {% if is_leader or user_role|lower == 'leader' or preview_mode %}
+        <span class="role-badge role-leader" title="You are the Project Leader">
+          <i data-lucide="crown" class="role-badge-icon"></i>
+          <span>Leader</span>
+        </span>
+        {% else %}
+        <span class="role-badge role-member" title="You are a Project Member">
+          <i data-lucide="user" class="role-badge-icon"></i>
+          <span>Member</span>
+        </span>
+        {% endif %}
+      </div>
+
+      <p class="project-detail-desc">
+        {{ project.description|default:"Production stabilization, authentication workflows, responsive layouts, and accessibility compliance audit." }}
+      </p>
+
+      <div class="project-header-meta-list">
+        <span class="project-meta-item">
+          <i data-lucide="calendar"></i>
+          <span>Created {{ project.created_at|default:"Oct 15, 2026" }}</span>
+        </span>
+        <span class="project-meta-item">
+          <i data-lucide="users"></i>
+          <span>{{ members|length|default:5 }} Team Members</span>
+        </span>
+        <span class="project-meta-item">
+          <i data-lucide="shield-check"></i>
+          <span>Role: {% if is_leader or preview_mode %}Project Leader{% else %}Team Member{% endif %}</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- Leader Actions in Header -->
+    {% if is_leader or preview_mode %}
+    <div class="project-header-actions">
+      <button class="btn btn-outline open-manage-project-modal">
+        <i data-lucide="settings" class="btn-icon"></i>
+        <span>Settings</span>
+      </button>
+      <button class="btn btn-outline open-manage-members-modal">
+        <i data-lucide="user-plus" class="btn-icon"></i>
+        <span>Invite</span>
+      </button>
+      <button class="btn btn-primary open-create-task-modal">
+        <i data-lucide="plus" class="btn-icon"></i>
+        <span>Create Task</span>
+      </button>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ======================== 2. PROJECT OVERVIEW METRICS ======================== -->
+<div class="project-metrics-grid" role="region" aria-label="Project Statistics">
+  <!-- Total Tasks -->
+  <div class="metric-card-summary">
+    <div>
+      <div class="metric-value-large">{{ stats.total_tasks|default:18 }}</div>
+      <div class="metric-label-sub">Total Tasks</div>
+    </div>
+    <div class="metric-icon-box total">
+      <i data-lucide="layers" style="width: 20px; height: 20px;"></i>
+    </div>
+  </div>
+
+  <!-- Completed Tasks -->
+  <div class="metric-card-summary">
+    <div>
+      <div class="metric-value-large">{{ stats.completed_tasks|default:14 }}</div>
+      <div class="metric-label-sub">Completed Tasks</div>
+    </div>
+    <div class="metric-icon-box completed">
+      <i data-lucide="check-circle-2" style="width: 20px; height: 20px;"></i>
+    </div>
+  </div>
+
+  <!-- In Progress Tasks -->
+  <div class="metric-card-summary">
+    <div>
+      <div class="metric-value-large">{{ stats.in_progress_tasks|default:3 }}</div>
+      <div class="metric-label-sub">In Progress</div>
+    </div>
+    <div class="metric-icon-box in-progress">
+      <i data-lucide="clock" style="width: 20px; height: 20px;"></i>
+    </div>
+  </div>
+
+  <!-- Pending Tasks -->
+  <div class="metric-card-summary">
+    <div>
+      <div class="metric-value-large">{{ stats.pending_tasks|default:1 }}</div>
+      <div class="metric-label-sub">Pending / To Do</div>
+    </div>
+    <div class="metric-icon-box pending">
+      <i data-lucide="list-todo" style="width: 20px; height: 20px;"></i>
+    </div>
+  </div>
+</div>
+
+<!-- Overall Progress Bar Card -->
+<div class="project-overall-progress-card">
+  <div class="progress-banner-row">
+    <div class="progress-banner-title">
+      <i data-lucide="trending-up" style="width: 18px; height: 18px; color: var(--accent-primary);"></i>
+      <span>Overall Project Completion</span>
+    </div>
+    <span class="progress-banner-percent">{{ project.progress|default:78 }}%</span>
+  </div>
+  <div class="progress-large-track">
+    <div class="progress-large-fill" style="width: {{ project.progress|default:78 }}%;"></div>
+  </div>
+</div>
+
+<!-- ======================== 3 & 4. WORKSPACE DUAL-COLUMN ======================== -->
+<div class="project-workspace-split">
+  
+  <!-- COLUMN 1: TASK MANAGEMENT SECTION -->
+  <section class="workspace-panel" aria-label="Project Tasks">
+    <div class="workspace-panel-header">
+      <div class="panel-title-wrap">
+        <i data-lucide="check-square" style="width: 20px; height: 20px; color: var(--accent-primary);"></i>
+        <h3 class="panel-title-text">Tasks</h3>
+        <span class="section-counter-badge">
+          {% if tasks %}{{ tasks|length }}{% else %}4{% endif %}
+        </span>
+      </div>
+
+      {% if is_leader or preview_mode %}
+      <button class="btn btn-primary open-create-task-modal" style="padding: 0.45rem 0.85rem; font-size: 0.825rem;">
+        <i data-lucide="plus" class="btn-icon"></i>
+        <span>Add Task</span>
+      </button>
+      {% endif %}
+    </div>
+
+    <!-- Tasks List -->
+    {% if tasks %}
+    <div class="project-tasks-list">
+      {% for task in tasks %}
+      <div class="project-task-card {% if task.status == 'completed' %}is-completed{% endif %}" id="task-card-{{ task.id }}">
+        <div class="task-card-main-row">
+          <div class="task-card-title-group">
+            <!-- If member & assigned to user OR leader: show clickable toggle button -->
+            {% if is_leader or task.assigned_to_user %}
+            <button class="task-status-btn" title="Toggle status" aria-label="Update task status">
+              <i data-lucide="check" style="width: 12px; height: 12px;"></i>
+            </button>
+            {% else %}
+            <!-- View-only checkbox icon for tasks assigned to other members -->
+            <div class="task-status-btn" style="cursor: default; opacity: 0.5;">
+              <i data-lucide="check" style="width: 12px; height: 12px;"></i>
+            </div>
+            {% endif %}
+
+            <div>
+              <h4 class="task-card-title">{{ task.title }}</h4>
+            </div>
+          </div>
+
+          <!-- Tags: Priority and Status -->
+          <div class="task-card-tags">
+            <span class="priority-tag {{ task.priority|lower }}">{{ task.priority|title }}</span>
+            <span class="status-badge-tag {{ task.status|slugify }}">{{ task.status|title }}</span>
+
+            <!-- Leader Actions: Edit, Delete -->
+            {% if is_leader %}
+            <div class="task-action-btns">
+              <button class="task-icon-action" title="Edit task" onclick="alert('Leader Action: Edit Task #{{ task.id }}');">
+                <i data-lucide="edit-3" style="width: 13px; height: 13px;"></i>
+              </button>
+              <button class="task-icon-action delete" title="Delete task" onclick="alert('Leader Action: Delete Task #{{ task.id }}');">
+                <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
+              </button>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        {% if task.description %}
+        <p class="task-card-desc">{{ task.description }}</p>
+        {% endif %}
+
+        <div class="task-card-footer-meta">
+          <div class="task-assignee-info">
+            <div class="assignee-avatar-tiny">
+              {{ task.assignee_initials|default:"TM" }}
+            </div>
+            <span>{{ task.assignee_name|default:"Unassigned" }}</span>
+          </div>
+
+          <div class="task-deadline-badge {% if task.is_overdue %}overdue{% endif %}">
+            <i data-lucide="clock" style="width: 13px; height: 13px;"></i>
+            <span>{{ task.deadline|default:"No deadline" }}</span>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% elif preview_mode %}
+    <!-- Preview Mode Tasks -->
+    <div class="project-tasks-list">
+      <!-- Task 1: Assigned to current user (In Progress) -->
+      <div class="project-task-card">
+        <div class="task-card-main-row">
+          <div class="task-card-title-group">
+            <button class="task-status-btn" title="Toggle task status">
+              <i data-lucide="check" style="width: 12px; height: 12px;"></i>
+            </button>
+            <h4 class="task-card-title">Audit accessibility &amp; responsive breakpoints</h4>
+          </div>
+
+          <div class="task-card-tags">
+            <span class="priority-tag high">High</span>
+            <span class="status-badge-tag in-progress">In Progress</span>
+
+            <div class="task-action-btns">
+              <button class="task-icon-action" title="Edit task" onclick="alert('Leader Action: Edit task details');">
+                <i data-lucide="edit-3" style="width: 13px; height: 13px;"></i>
+              </button>
+              <button class="task-icon-action delete" title="Delete task" onclick="alert('Leader Action: Delete task');">
+                <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <p class="task-card-desc">
+          Ensure contrast compliance for terracotta accent buttons, test WCAG 2.1 AA keyboard navigation, and check 320px–1440px layout behavior.
+        </p>
+
+        <div class="task-card-footer-meta">
+          <div class="task-assignee-info">
+            <div class="assignee-avatar-tiny">SV</div>
+            <span>Sahil Verma (You)</span>
+          </div>
+
+          <div class="task-deadline-badge">
+            <i data-lucide="clock" style="width: 13px; height: 13px;"></i>
+            <span>Tomorrow, 5:00 PM</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Task 2: Assigned to Mihir (Pending) -->
+      <div class="project-task-card">
+        <div class="task-card-main-row">
+          <div class="task-card-title-group">
+            <button class="task-status-btn" title="Toggle task status">
+              <i data-lucide="check" style="width: 12px; height: 12px;"></i>
+            </button>
+            <h4 class="task-card-title">Implement CSRF &amp; Secure Session Cookie Flags</h4>
+          </div>
+
+          <div class="task-card-tags">
+            <span class="priority-tag high">High</span>
+            <span class="status-badge-tag pending">To Do</span>
+
+            <div class="task-action-btns">
+              <button class="task-icon-action" title="Edit task">
+                <i data-lucide="edit-3" style="width: 13px; height: 13px;"></i>
+              </button>
+              <button class="task-icon-action delete" title="Delete task">
+                <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <p class="task-card-desc">
+          Add SESSION_COOKIE_HTTPONLY, CSRF_COOKIE_HTTPONLY, and strict samesite headers in config/settings.py.
+        </p>
+
+        <div class="task-card-footer-meta">
+          <div class="task-assignee-info">
+            <div class="assignee-avatar-tiny" style="background: #EAF2F8; color: #4C7DA7;">MD</div>
+            <span>Mihir Dave</span>
+          </div>
+
+          <div class="task-deadline-badge">
+            <i data-lucide="clock" style="width: 13px; height: 13px;"></i>
+            <span>Nov 05, 2026</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Task 3: Assigned to Aanya (Completed) -->
+      <div class="project-task-card is-completed">
+        <div class="task-card-main-row">
+          <div class="task-card-title-group">
+            <button class="task-status-btn" title="Toggle task status">
+              <i data-lucide="check" style="width: 12px; height: 12px;"></i>
+            </button>
+            <h4 class="task-card-title">Design role permission matrix &amp; UI boundaries</h4>
+          </div>
+
+          <div class="task-card-tags">
+            <span class="priority-tag medium">Medium</span>
+            <span class="status-badge-tag completed">Completed</span>
+
+            <div class="task-action-btns">
+              <button class="task-icon-action" title="Edit task">
+                <i data-lucide="edit-3" style="width: 13px; height: 13px;"></i>
+              </button>
+              <button class="task-icon-action delete" title="Delete task">
+                <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <p class="task-card-desc">
+          Document leader vs member access patterns, task update boundaries, and administrative actions.
+        </p>
+
+        <div class="task-card-footer-meta">
+          <div class="task-assignee-info">
+            <div class="assignee-avatar-tiny" style="background: #EAF3EE; color: #4F8A68;">AR</div>
+            <span>Aanya Roy</span>
+          </div>
+
+          <div class="task-deadline-badge">
+            <i data-lucide="check-circle" style="width: 13px; height: 13px; color: var(--status-success);"></i>
+            <span>Completed</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% else %}
+    <!-- Empty State: No tasks in project -->
+    <div class="empty-state-box">
+      <div class="empty-state-icon-wrap">
+        <i data-lucide="list-todo" class="empty-state-svg"></i>
+      </div>
+      <h4 class="empty-state-title">No tasks in this project yet</h4>
+      <p class="empty-state-desc">Break down the project goals into organized tasks and assign them to team members.</p>
+      {% if is_leader or preview_mode %}
+      <button class="btn btn-primary open-create-task-modal">
+        <i data-lucide="plus" class="btn-icon"></i>
+        <span>Create First Task</span>
+      </button>
+      {% endif %}
+    </div>
+    {% endif %}
+  </section>
+
+  <!-- COLUMN 2: TEAM MEMBERS SECTION -->
+  <aside class="workspace-panel" aria-label="Team Members">
+    <div class="workspace-panel-header">
+      <div class="panel-title-wrap">
+        <i data-lucide="users" style="width: 20px; height: 20px; color: var(--accent-primary);"></i>
+        <h3 class="panel-title-text">Team Members</h3>
+        <span class="section-counter-badge">
+          {% if members %}{{ members|length }}{% else %}4{% endif %}
+        </span>
+      </div>
+
+      <!-- Leader-only member management button -->
+      {% if is_leader or preview_mode %}
+      <button class="btn btn-outline open-manage-members-modal" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;" title="Invite new member">
+        <i data-lucide="user-plus" class="btn-icon"></i>
+        <span>Invite</span>
+      </button>
+      {% endif %}
+    </div>
+
+    <!-- Members List -->
+    {% if members %}
+    <div class="members-list-stack">
+      {% for mem in members %}
+      <div class="member-row-card">
+        <div class="member-profile-combo">
+          <div class="member-avatar-box">
+            {{ mem.initials|default:"U" }}
+          </div>
+          <div class="member-text-meta">
+            <span class="member-full-name">{{ mem.name }}</span>
+            <span class="member-sub-info">{{ mem.email }}</span>
+          </div>
+        </div>
+
+        <div class="member-right-controls">
+          {% if mem.is_leader or mem.role|lower == 'leader' %}
+          <span class="role-badge role-leader" style="font-size: 0.725rem; padding: 0.2rem 0.55rem;">Leader</span>
+          {% else %}
+          <span class="role-badge role-member" style="font-size: 0.725rem; padding: 0.2rem 0.55rem;">Member</span>
+          {% endif %}
+
+          {% if is_leader and not mem.is_leader %}
+          <!-- Leader removal control -->
+          <button class="task-icon-action delete" title="Remove member" onclick="alert('Leader Action: Remove member');">
+            <i data-lucide="user-minus" style="width: 13px; height: 13px;"></i>
+          </button>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% elif preview_mode %}
+    <!-- Preview Mode Members -->
+    <div class="members-list-stack">
+      <!-- Member 1: Sahil (Leader) -->
+      <div class="member-row-card">
+        <div class="member-profile-combo">
+          <div class="member-avatar-box">SV</div>
+          <div class="member-text-meta">
+            <span class="member-full-name">Sahil Verma</span>
+            <span class="member-sub-info">sahil@karyaflow.io &bull; Joined Oct 15</span>
+          </div>
+        </div>
+        <div class="member-right-controls">
+          <span class="role-badge role-leader" style="font-size: 0.725rem; padding: 0.2rem 0.55rem;">Leader</span>
+        </div>
+      </div>
+
+      <!-- Member 2: Aanya (Member) -->
+      <div class="member-row-card">
+        <div class="member-profile-combo">
+          <div class="member-avatar-box sage">AR</div>
+          <div class="member-text-meta">
+            <span class="member-full-name">Aanya Roy</span>
+            <span class="member-sub-info">aanya@karyaflow.io &bull; Joined Oct 16</span>
+          </div>
+        </div>
+        <div class="member-right-controls">
+          <span class="role-badge role-member" style="font-size: 0.725rem; padding: 0.2rem 0.55rem;">Member</span>
+          <button class="task-icon-action delete" title="Remove member" onclick="alert('Leader Action: Remove member');">
+            <i data-lucide="user-minus" style="width: 13px; height: 13px;"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Member 3: Mihir (Member) -->
+      <div class="member-row-card">
+        <div class="member-profile-combo">
+          <div class="member-avatar-box secondary">MD</div>
+          <div class="member-text-meta">
+            <span class="member-full-name">Mihir Dave</span>
+            <span class="member-sub-info">mihir@karyaflow.io &bull; Joined Oct 18</span>
+          </div>
+        </div>
+        <div class="member-right-controls">
+          <span class="role-badge role-member" style="font-size: 0.725rem; padding: 0.2rem 0.55rem;">Member</span>
+          <button class="task-icon-action delete" title="Remove member" onclick="alert('Leader Action: Remove member');">
+            <i data-lucide="user-minus" style="width: 13px; height: 13px;"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Member 4: Priya (Member) -->
+      <div class="member-row-card">
+        <div class="member-profile-combo">
+          <div class="member-avatar-box terracotta-light">PS</div>
+          <div class="member-text-meta">
+            <span class="member-full-name">Priya Sharma</span>
+            <span class="member-sub-info">priya@karyaflow.io &bull; Joined Oct 22</span>
+          </div>
+        </div>
+        <div class="member-right-controls">
+          <span class="role-badge role-member" style="font-size: 0.725rem; padding: 0.2rem 0.55rem;">Member</span>
+          <button class="task-icon-action delete" title="Remove member" onclick="alert('Leader Action: Remove member');">
+            <i data-lucide="user-minus" style="width: 13px; height: 13px;"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    {% else %}
+    <!-- Empty State: No additional members -->
+    <div class="empty-state-box">
+      <div class="empty-state-icon-wrap">
+        <i data-lucide="user-plus" class="empty-state-svg"></i>
+      </div>
+      <h4 class="empty-state-title">No other members</h4>
+      <p class="empty-state-desc">You are currently the only member in this project.</p>
+      {% if is_leader or preview_mode %}
+      <button class="btn btn-outline open-manage-members-modal">
+        <i data-lucide="user-plus" class="btn-icon"></i>
+        <span>Invite Team Members</span>
+      </button>
+      {% endif %}
+    </div>
+    {% endif %}
+  </aside>
+
+</div>
+
+<!-- ======================== MODAL: CREATE TASK (Leader Only) ======================== -->
+<div class="modal-backdrop-wrap" id="modalCreateTask" role="dialog" aria-modal="true" aria-labelledby="modalCreateTaskTitle">
+  <div class="modal-dialog-box">
+    <div class="modal-dialog-header">
+      <h3 class="modal-dialog-title" id="modalCreateTaskTitle">Create New Task</h3>
+      <button class="modal-close-trigger" aria-label="Close modal">
+        <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+      </button>
+    </div>
+
+    <form method="post" action="{% url 'project_detail' project.id|default:1 %}">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="create_task">
+
+      <div class="form-group">
+        <label class="form-label" for="taskTitleInput">Task Title <span class="label-required">*</span></label>
+        <input type="text" id="taskTitleInput" name="title" class="form-input" placeholder="e.g. Audit responsive breakpoints" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="taskDescInput">Task Description</label>
+        <textarea id="taskDescInput" name="description" class="form-input" style="height: 80px; padding: 0.65rem 1rem;" placeholder="Detailed requirements and acceptance criteria..."></textarea>
+      </div>
+
+      <div class="settings-form-grid" style="margin-bottom: 1.25rem;">
+        <div>
+          <label class="form-label" for="taskPrioritySelect">Priority</label>
+          <select id="taskPrioritySelect" name="priority" class="filter-select" style="width: 100%;">
+            <option value="low">Low</option>
+            <option value="medium" selected>Medium</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="form-label" for="taskDeadlineInput">Deadline</label>
+          <input type="date" id="taskDeadlineInput" name="deadline" class="form-input" style="padding-left: 1rem;">
+        </div>
+      </div>
+
+      <div class="settings-form-grid" style="margin-bottom: 1.25rem;">
+        <div>
+          <label class="form-label" for="taskAssigneeSelect">Assign To</label>
+          <select id="taskAssigneeSelect" name="assignee_id" class="filter-select" style="width: 100%;">
+            <option value="">Unassigned</option>
+            <option value="1" selected>Sahil Verma (You)</option>
+            <option value="2">Aanya Roy</option>
+            <option value="3">Mihir Dave</option>
+            <option value="4">Priya Sharma</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="form-label" for="taskStatusSelect">Status</label>
+          <select id="taskStatusSelect" name="status" class="filter-select" style="width: 100%;">
+            <option value="pending" selected>To Do</option>
+            <option value="in_progress">In Progress</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-form-actions">
+        <button type="button" class="btn btn-outline modal-close-trigger">Cancel</button>
+        <button type="submit" class="btn btn-primary">
+          <i data-lucide="check" class="btn-icon"></i>
+          <span>Create Task</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ======================== MODAL: MANAGE MEMBERS (Leader Only) ======================== -->
+<div class="modal-backdrop-wrap" id="modalManageMembers" role="dialog" aria-modal="true" aria-labelledby="modalManageMembersTitle2">
+  <div class="modal-dialog-box">
+    <div class="modal-dialog-header">
+      <h3 class="modal-dialog-title" id="modalManageMembersTitle2">Invite Member to Project</h3>
+      <button class="modal-close-trigger" aria-label="Close modal">
+        <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+      </button>
+    </div>
+
+    <form method="post" action="{% url 'project_detail' project.id|default:1 %}">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="invite_member">
+
+      <div class="form-group">
+        <label class="form-label" for="memberEmailInput">Email Address or Username <span class="label-required">*</span></label>
+        <input type="text" id="memberEmailInput" name="identifier" class="form-input" placeholder="colleague@karyaflow.io" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="memberRoleSelectProject">Role</label>
+        <select id="memberRoleSelectProject" name="role" class="filter-select" style="width: 100%;">
+          <option value="member" selected>Member (Can view tasks &amp; update assigned status)</option>
+          <option value="leader">Leader (Can manage project, tasks &amp; members)</option>
+        </select>
+      </div>
+
+      <div class="modal-form-actions">
+        <button type="button" class="btn btn-outline modal-close-trigger">Cancel</button>
+        <button type="submit" class="btn btn-primary">
+          <i data-lucide="user-plus" class="btn-icon"></i>
+          <span>Add Member</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ======================== MODAL: MANAGE PROJECT (Leader Only) ======================== -->
+<div class="modal-backdrop-wrap" id="modalManageProject" role="dialog" aria-modal="true" aria-labelledby="modalManageProjectTitle2">
+  <div class="modal-dialog-box">
+    <div class="modal-dialog-header">
+      <h3 class="modal-dialog-title" id="modalManageProjectTitle2">Project Settings</h3>
+      <button class="modal-close-trigger" aria-label="Close modal">
+        <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+      </button>
+    </div>
+
+    <form method="post" action="{% url 'project_detail' project.id|default:1 %}">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="update_project">
+
+      <div class="form-group">
+        <label class="form-label" for="projNameEdit">Project Name <span class="label-required">*</span></label>
+        <input type="text" id="projNameEdit" name="name" class="form-input" value="{{ project.name|default:'KaryaFlow Platform Hardening' }}" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="projDescEdit">Description</label>
+        <textarea id="projDescEdit" name="description" class="form-input" style="height: 80px; padding: 0.65rem 1rem;">{{ project.description|default:'Production stabilization, authentication workflows, and accessibility compliance audit.' }}</textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="projStatusEdit">Status</label>
+        <select id="projStatusEdit" name="status" class="filter-select" style="width: 100%;">
+          <option value="In Progress" selected>In Progress</option>
+          <option value="Planning">Planning</option>
+          <option value="Completed">Completed</option>
+          <option value="On Hold">On Hold</option>
+        </select>
+      </div>
+
+      <div class="modal-form-actions">
+        <button type="button" class="btn btn-outline modal-close-trigger">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'js/projects.js' %}"></script>
+{% endblock %}
