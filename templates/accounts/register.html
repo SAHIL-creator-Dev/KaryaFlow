@@ -193,22 +193,43 @@
         <form method="POST" action="{% url 'register' %}" class="auth-form" id="registerForm" novalidate>
           {% csrf_token %}
 
-          <!-- Full Name Field (Optional / friendly display name) -->
-          <div class="form-group">
-            <label for="id_full_name" class="form-label">
-              <span>Full Name</span>
-            </label>
-            <div class="form-control-wrap">
-              <i data-lucide="smile" class="form-control-icon"></i>
-              <input 
-                type="text" 
-                id="id_full_name" 
-                name="full_name" 
-                class="form-input" 
-                placeholder="Sahil Verma" 
-                autocomplete="name"
-                autofocus
-              >
+          <!-- First Name & Last Name (Responsive Grid) -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+              <label for="id_first_name" class="form-label">
+                <span>First Name</span>
+                <span class="label-required">*</span>
+              </label>
+              <div class="form-control-wrap">
+                <i data-lucide="user" class="form-control-icon"></i>
+                <input 
+                  type="text" 
+                  id="id_first_name" 
+                  name="first_name" 
+                  class="form-input" 
+                  placeholder="Sahil" 
+                  required
+                  autocomplete="given-name"
+                  autofocus
+                >
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="id_last_name" class="form-label">
+                <span>Last Name</span>
+              </label>
+              <div class="form-control-wrap">
+                <i data-lucide="user" class="form-control-icon"></i>
+                <input 
+                  type="text" 
+                  id="id_last_name" 
+                  name="last_name" 
+                  class="form-input" 
+                  placeholder="Verma" 
+                  autocomplete="family-name"
+                >
+              </div>
             </div>
           </div>
 

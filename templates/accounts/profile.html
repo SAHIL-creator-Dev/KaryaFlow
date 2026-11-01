@@ -33,8 +33,8 @@
     <!-- Big Avatar with Edit overlay -->
     <div class="avatar-upload-wrapper">
       <div class="profile-big-avatar" id="profileAvatarDisplay">
-        {% if user.profile_picture %}
-          <img src="{{ user.profile_picture.url }}" alt="{{ user.get_full_name|default:user.username }}">
+        {% if profile.avatar_url %}
+          <img src="{{ profile.avatar_url }}" alt="{{ user.get_full_name|default:user.username }}">
         {% elif user.first_name %}
           {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}
         {% elif user.username %}
@@ -45,19 +45,27 @@
       </div>
 
       <!-- Avatar Picker Trigger -->
-      <button type="button" class="avatar-edit-trigger" title="Upload new photo" aria-label="Upload new photo">
-        <i data-lucide="camera" style="width: 15px; height: 15px;"></i>
-      </button>
-    </div>
+      <form id="avatarUploadForm" method="post" action="{% url 'profile' %}" enctype="multipart/form-data" style="display: inline;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_profile">
+        <input type="hidden" name="first_name" value="{{ user.first_name }}">
+        <input type="hidden" name="last_name" value="{{ user.last_name }}">
+        <input type="hidden" name="email" value="{{ user.email }}">
+        
+        <button type="button" class="avatar-edit-trigger" title="Upload new photo" aria-label="Upload new photo">
+          <i data-lucide="camera" style="width: 15px; height: 15px;"></i>
+        </button>
 
-    <!-- Hidden file input triggered by avatar-edit-trigger -->
-    <input type="file" id="avatarFileInput" name="profile_image" accept="image/*" style="display: none;">
+        <!-- File input triggered by avatar-edit-trigger -->
+        <input type="file" id="avatarFileInput" name="avatar" accept="image/*" style="display: none;" onchange="this.form.submit()">
+      </form>
+    </div>
 
     <h2 class="profile-identity-name">
       {% if user.is_authenticated and user.get_full_name %}
         {{ user.get_full_name }}
       {% else %}
-        Sahil Verma
+        {{ user.username }}
       {% endif %}
     </h2>
 
@@ -130,7 +138,7 @@
                 id="profileFirstName" 
                 name="first_name" 
                 class="form-input" 
-                value="{{ user.first_name|default:'Sahil' }}" 
+                value="{{ user.first_name }}" 
                 required
               >
               <i data-lucide="user" class="form-control-icon"></i>
@@ -146,7 +154,7 @@
                 id="profileLastName" 
                 name="last_name" 
                 class="form-input" 
-                value="{{ user.last_name|default:'Verma' }}"
+                value="{{ user.last_name }}"
               >
               <i data-lucide="user" class="form-control-icon"></i>
             </div>
@@ -154,7 +162,7 @@
         </div>
 
         <div class="settings-form-grid">
-          <!-- Username (Read-only or editable based on system) -->
+          <!-- Username (Read-only) -->
           <div class="form-group">
             <label class="form-label" for="profileUsername">Username</label>
             <div class="form-control-wrap">
@@ -163,7 +171,7 @@
                 id="profileUsername" 
                 name="username" 
                 class="form-input" 
-                value="{{ user.username|default:'sahilverma' }}" 
+                value="{{ user.username }}" 
                 readonly
                 style="background-color: var(--bg-hover); cursor: not-allowed;"
               >
@@ -180,7 +188,7 @@
                 id="profileEmail" 
                 name="email" 
                 class="form-input" 
-                value="{{ user.email|default:'sahil@karyaflow.io' }}" 
+                value="{{ user.email }}" 
                 required
               >
               <i data-lucide="mail" class="form-control-icon"></i>

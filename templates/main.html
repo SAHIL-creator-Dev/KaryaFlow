@@ -65,12 +65,22 @@
 
       <!-- Desktop Action Buttons -->
       <div class="nav-actions">
-        <!-- Auth routes -->
+        {% if user.is_authenticated %}
+        <a href="{% url 'dashboard' %}" class="btn btn-ghost" title="Go to Dashboard">
+          <i data-lucide="layout-dashboard" class="btn-icon"></i>
+          <span>Dashboard</span>
+        </a>
+        <form method="post" action="{% url 'logout' %}" style="display: inline; margin: 0;">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-outline" title="Sign out of KaryaFlow">Log Out</button>
+        </form>
+        {% else %}
         <a href="{% url 'login' %}" class="btn btn-ghost" title="Login to KaryaFlow">Log In</a>
         <a href="{% url 'register' %}" class="btn btn-primary" title="Get Started with KaryaFlow">
           <span>Get Started</span>
           <i data-lucide="arrow-right" class="btn-icon"></i>
         </a>
+        {% endif %}
       </div>
 
       <!-- Mobile Hamburger Button -->
@@ -92,8 +102,16 @@
           <li><a href="#teamwork" class="mobile-nav-link">Teamwork</a></li>
         </ul>
         <div class="mobile-actions">
+          {% if user.is_authenticated %}
+          <a href="{% url 'dashboard' %}" class="btn btn-primary btn-block">Go to Dashboard</a>
+          <form method="post" action="{% url 'logout' %}" style="display: block; margin-top: 0.5rem;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline btn-block">Log Out</button>
+          </form>
+          {% else %}
           <a href="{% url 'login' %}" class="btn btn-outline btn-block">Log In</a>
           <a href="{% url 'register' %}" class="btn btn-primary btn-block">Get Started Free</a>
+          {% endif %}
         </div>
       </div>
     </div>
