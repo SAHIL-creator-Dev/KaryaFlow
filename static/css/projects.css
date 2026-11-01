@@ -1,0 +1,826 @@
+/* ==========================================================================
+   KaryaFlow Projects Stylesheet (projects.css)
+   Styles for Project Listing (My Projects) and Project Detail Workspace
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Filter Bar & Search Toolbar
+   -------------------------------------------------------------------------- */
+.projects-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.projects-search-box {
+  position: relative;
+  flex: 1;
+  min-width: 280px;
+  max-width: 440px;
+}
+
+.projects-search-input {
+  width: 100%;
+  height: 44px;
+  padding: 0.6rem 1rem 0.6rem 2.65rem;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--text-main);
+  background-color: #FFFFFF;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: all var(--transition-fast);
+}
+
+.projects-search-input:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(200, 117, 77, 0.14);
+}
+
+.projects-search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 17px;
+  height: 17px;
+  color: var(--text-muted);
+  pointer-events: none;
+  transition: color var(--transition-fast);
+}
+
+.projects-search-input:focus ~ .projects-search-icon {
+  color: var(--accent-primary);
+}
+
+.projects-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.filter-pill-tabs {
+  display: inline-flex;
+  background: #FFFFFF;
+  padding: 0.25rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+}
+
+.filter-tab-btn {
+  padding: 0.45rem 0.9rem;
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.filter-tab-btn:hover {
+  color: var(--text-main);
+  background: var(--bg-hover);
+}
+
+.filter-tab-btn.active {
+  background: var(--accent-primary);
+  color: #FFFFFF;
+  box-shadow: 0 2px 6px rgba(200, 117, 77, 0.28);
+}
+
+.filter-select {
+  height: 42px;
+  padding: 0.45rem 2rem 0.45rem 0.9rem;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-main);
+  background-color: #FFFFFF;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23777168' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  transition: border-color var(--transition-fast);
+}
+
+.filter-select:focus {
+  border-color: var(--accent-primary);
+}
+
+/* --------------------------------------------------------------------------
+   2. Enhanced Project Cards (Listing Page)
+   -------------------------------------------------------------------------- */
+.project-card-link-wrapper {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.project-card-meta-top {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+  font-size: 0.775rem;
+  color: var(--text-muted);
+}
+
+.project-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-full);
+}
+
+.project-status-pill.in-progress {
+  background: var(--status-warning-bg);
+  color: var(--status-warning);
+}
+
+.project-status-pill.completed {
+  background: var(--status-success-bg);
+  color: var(--status-success);
+}
+
+.project-status-pill.planning {
+  background: var(--status-info-bg);
+  color: var(--status-info);
+}
+
+.project-status-pill.on-hold {
+  background: #F0ECE6;
+  color: var(--text-secondary);
+}
+
+.status-indicator-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* --------------------------------------------------------------------------
+   3. Project Detail Workspace Header & Hero
+   -------------------------------------------------------------------------- */
+.project-detail-hero {
+  background: #FFFFFF;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  padding: 2.25rem;
+  margin-bottom: 2rem;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+.project-detail-hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+}
+
+.project-nav-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-decoration: none;
+  margin-bottom: 1.25rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg-hover);
+  transition: all var(--transition-fast);
+}
+
+.project-nav-back:hover {
+  color: var(--accent-deep);
+  background: var(--bg-accent-soft);
+  transform: translateX(-3px);
+}
+
+.project-header-main {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.project-title-area {
+  flex: 1;
+  min-width: 300px;
+}
+
+.project-headline-row {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.65rem;
+}
+
+.project-main-heading {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.project-detail-desc {
+  font-size: 0.975rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  max-width: 760px;
+  margin-bottom: 1.25rem;
+}
+
+.project-header-meta-list {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  font-size: 0.825rem;
+  color: var(--text-muted);
+}
+
+.project-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.project-meta-item i {
+  color: var(--accent-primary);
+  width: 15px;
+  height: 15px;
+}
+
+.project-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* --------------------------------------------------------------------------
+   4. Project Overview Metric Grid & Progress Bar
+   -------------------------------------------------------------------------- */
+.project-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.metric-card-summary {
+  background: #FFFFFF;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.45rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.metric-card-summary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.metric-value-large {
+  font-size: 1.85rem;
+  font-weight: 800;
+  font-family: var(--font-heading);
+  color: var(--text-main);
+  line-height: 1.1;
+}
+
+.metric-label-sub {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+}
+
+.metric-icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.metric-icon-box.total {
+  background: var(--bg-accent-soft);
+  color: var(--accent-primary);
+}
+
+.metric-icon-box.completed {
+  background: var(--status-success-bg);
+  color: var(--status-success);
+}
+
+.metric-icon-box.in-progress {
+  background: var(--status-warning-bg);
+  color: var(--status-warning);
+}
+
+.metric-icon-box.pending {
+  background: var(--status-info-bg);
+  color: var(--status-info);
+}
+
+/* Overall Progress Card */
+.project-overall-progress-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.4rem 1.65rem;
+  margin-bottom: 2.25rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.progress-banner-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.progress-banner-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.progress-banner-percent {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--accent-deep);
+  font-family: var(--font-heading);
+}
+
+.progress-large-track {
+  width: 100%;
+  height: 10px;
+  background: var(--border-light);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.progress-large-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-secondary), var(--accent-primary));
+  border-radius: var(--radius-full);
+  transition: width 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* --------------------------------------------------------------------------
+   5. Detail Workspace Two-Column Split (Tasks + Team Members)
+   -------------------------------------------------------------------------- */
+.project-workspace-split {
+  display: grid;
+  grid-template-columns: 1.9fr 1.1fr;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.workspace-panel {
+  background: #FFFFFF;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  padding: 1.85rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.workspace-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.panel-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.panel-title-text {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+/* --------------------------------------------------------------------------
+   6. Detailed Tasks List in Workspace
+   -------------------------------------------------------------------------- */
+.project-task-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 1.15rem 1.25rem;
+  margin-bottom: 0.85rem;
+  transition: all var(--transition-fast);
+}
+
+.project-task-card:hover {
+  background: #FFFFFF;
+  border-color: var(--border-accent);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
+}
+
+.project-task-card.is-completed {
+  opacity: 0.78;
+}
+
+.project-task-card.is-completed .task-card-title {
+  text-decoration: line-through;
+  color: var(--text-secondary);
+}
+
+.task-card-main-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.task-card-title-group {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.task-card-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.35;
+}
+
+.task-card-desc {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 0.85rem;
+  padding-left: 2.15rem;
+}
+
+.task-card-footer-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--border-light);
+  padding-left: 2.15rem;
+}
+
+.task-assignee-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.assignee-avatar-tiny {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--accent-subtle);
+  color: var(--accent-deep);
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.task-card-tags {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.task-deadline-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.task-deadline-badge.overdue {
+  color: #C81E1E;
+  font-weight: 700;
+}
+
+.task-action-btns {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.task-icon-action {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.task-icon-action:hover {
+  color: var(--text-main);
+  background: #FFFFFF;
+  border-color: var(--border-color);
+}
+
+.task-icon-action.delete:hover {
+  color: #C81E1E;
+  background: #FDF2F2;
+  border-color: #F8B4B4;
+}
+
+/* --------------------------------------------------------------------------
+   7. Team Members Panel
+   -------------------------------------------------------------------------- */
+.members-list-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.member-row-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.member-row-card:hover {
+  background: #FFFFFF;
+  border-color: var(--border-accent);
+  box-shadow: var(--shadow-sm);
+}
+
+.member-profile-combo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  overflow: hidden;
+}
+
+.member-avatar-box {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  color: #FFFFFF;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(200, 117, 77, 0.25);
+}
+
+.member-avatar-box.secondary {
+  background: #5A738E;
+  box-shadow: 0 2px 6px rgba(90, 115, 142, 0.25);
+}
+
+.member-avatar-box.terracotta-light {
+  background: var(--accent-secondary);
+}
+
+.member-avatar-box.sage {
+  background: var(--status-success);
+}
+
+.member-text-meta {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.member-full-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.member-sub-info {
+  font-size: 0.775rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.member-right-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-shrink: 0;
+}
+
+/* --------------------------------------------------------------------------
+   8. Modals (Create Task, Add Member, Manage Project)
+   -------------------------------------------------------------------------- */
+.modal-backdrop-wrap {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(41, 39, 34, 0.48);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.modal-backdrop-wrap.is-visible {
+  display: flex;
+  animation: fadeInModal 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeInModal {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-dialog-box {
+  background: #FFFFFF;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  width: 100%;
+  max-width: 540px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-xl);
+  padding: 2rem;
+  position: relative;
+}
+
+.modal-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.modal-dialog-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.modal-close-trigger {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.35rem;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.modal-close-trigger:hover {
+  color: var(--text-main);
+  background: var(--bg-hover);
+}
+
+.modal-form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border-light);
+}
+
+/* --------------------------------------------------------------------------
+   9. Responsive Breakpoints for Projects
+   -------------------------------------------------------------------------- */
+@media (max-width: 1100px) {
+  .project-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .project-workspace-split {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .project-detail-hero {
+    padding: 1.5rem;
+  }
+
+  .project-main-heading {
+    font-size: 1.5rem;
+  }
+
+  .project-header-main {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .project-header-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .projects-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .projects-search-box {
+    max-width: 100%;
+  }
+
+  .projects-filter-group {
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 540px) {
+  .project-metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .task-card-footer-meta {
+    padding-left: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .task-card-desc {
+    padding-left: 0;
+  }
+}

@@ -1,0 +1,478 @@
+{% extends 'app_base.html' %}
+{% load static %}
+
+{% block title %}My Projects — KaryaFlow{% endblock %}
+{% block nav_projects %}active{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/projects.css' %}">
+{% endblock %}
+
+{% block topbar_heading %}
+<h1 class="topbar-greeting">My Projects</h1>
+<p class="topbar-subtext">Manage and track the projects you're part of.</p>
+{% endblock %}
+
+{% block topbar_actions %}
+{% if can_create_project or can_create_project is None or preview_mode %}
+<!-- Create Project Button (visible only where authorized) -->
+<button class="btn btn-primary open-create-project-modal" id="btnOpenCreateProjectModal" aria-haspopup="dialog">
+  <i data-lucide="plus" class="btn-icon"></i>
+  <span>Create Project</span>
+</button>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<!-- ======================== SEARCH & FILTER TOOLBAR ======================== -->
+<div class="projects-toolbar" role="region" aria-label="Project Filters">
+  <!-- Search input -->
+  <div class="projects-search-box">
+    <input 
+      type="text" 
+      class="projects-search-input" 
+      id="projectSearchInput" 
+      placeholder="Search projects by name or description..." 
+      aria-label="Search projects"
+    >
+    <i data-lucide="search" class="projects-search-icon"></i>
+  </div>
+
+  <div class="projects-filter-group">
+    <!-- Role filter tabs: All, Leader, Member -->
+    <div class="filter-pill-tabs" role="tablist" aria-label="Filter by role">
+      <button class="filter-tab-btn active" data-role-filter="all" role="tab" aria-selected="true">
+        All
+      </button>
+      <button class="filter-tab-btn" data-role-filter="leader" role="tab" aria-selected="false">
+        <i data-lucide="crown" style="width: 14px; height: 14px;"></i>
+        Leader
+      </button>
+      <button class="filter-tab-btn" data-role-filter="member" role="tab" aria-selected="false">
+        <i data-lucide="user" style="width: 14px; height: 14px;"></i>
+        Member
+      </button>
+    </div>
+
+    <!-- Status filter dropdown -->
+    <select class="filter-select" id="projectStatusFilter" aria-label="Filter by project status">
+      <option value="all">All Statuses</option>
+      <option value="in-progress">In Progress</option>
+      <option value="planning">Planning</option>
+      <option value="completed">Completed</option>
+      <option value="on-hold">On Hold</option>
+    </select>
+  </div>
+</div>
+
+<!-- ======================== PROJECTS CARDS GRID ======================== -->
+{% if projects %}
+<!-- Real Backend Projects Loop -->
+<div class="projects-cards-grid" id="projectsCardsGrid">
+  {% for project in projects %}
+  <div class="project-card" 
+       data-project-role="{% if project.is_leader or project.user_role|lower == 'leader' %}leader{% else %}member{% endif %}"
+       data-project-status="{{ project.status|slugify|default:'in-progress' }}">
+    
+    <div class="project-card-header">
+      <div class="project-title-group">
+        <h3 class="project-name">{{ project.name }}</h3>
+        <div class="project-card-meta-top">
+          <span class="project-status-pill {{ project.status|slugify|default:'in-progress' }}">
+            <span class="status-indicator-dot"></span>
+            {{ project.status|default:"In Progress" }}
+          </span>
+          {% if project.created_at %}
+          <span>&bull;</span>
+          <span>Created {{ project.created_at }}</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Current User's Role Badge -->
+      {% if project.is_leader or project.user_role|lower == 'leader' %}
+      <span class="role-badge role-leader" title="You are the Project Leader">
+        <i data-lucide="crown" class="role-badge-icon"></i>
+        <span>Leader</span>
+      </span>
+      {% else %}
+      <span class="role-badge role-member" title="You are a Project Member">
+        <i data-lucide="user" class="role-badge-icon"></i>
+        <span>Member</span>
+      </span>
+      {% endif %}
+    </div>
+
+    <p class="project-description">{{ project.description|default:"No description provided for this project." }}</p>
+
+    <!-- Task Progress Indicator -->
+    <div class="project-progress-wrap">
+      <div class="progress-meta-row">
+        <span class="progress-label">Progress ({{ project.completed_tasks|default:0 }}/{{ project.total_tasks|default:0 }} tasks)</span>
+        <span class="progress-value">{{ project.progress|default:0 }}%</span>
+      </div>
+      <div class="project-progress-track">
+        <div class="project-progress-bar" style="width: {{ project.progress|default:0 }}%;"></div>
+      </div>
+    </div>
+
+    <!-- Project Card Footer & Role-Based Actions -->
+    <div class="project-card-footer">
+      <div class="project-meta-members">
+        <i data-lucide="users" style="width: 15px; height: 15px; color: var(--text-muted);"></i>
+        <span>{{ project.member_count|default:1 }} Members</span>
+      </div>
+
+      <div class="project-actions-group">
+        <!-- View Project action (Allowed for both Leader and Member) -->
+        <a href="{% if project.id %}{% url 'project_detail' project.id %}{% else %}#{% endif %}" class="btn-project-action secondary" title="View workspace">
+          <i data-lucide="external-link" style="width: 13px; height: 13px;"></i>
+          <span>View Project</span>
+        </a>
+
+        <!-- Leader-only Actions -->
+        {% if project.is_leader or project.user_role|lower == 'leader' %}
+        <button class="btn-project-action secondary open-manage-project-modal" title="Manage project settings" data-project-id="{{ project.id }}">
+          <i data-lucide="settings" style="width: 13px; height: 13px;"></i>
+          <span>Manage</span>
+        </button>
+        <button class="btn-project-action secondary open-manage-members-modal" title="Manage team members" data-project-id="{{ project.id }}">
+          <i data-lucide="user-plus" style="width: 13px; height: 13px;"></i>
+          <span>Members</span>
+        </button>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% elif preview_mode %}
+<!-- Standalone Frontend Design Preview Mode -->
+<div class="projects-cards-grid" id="projectsCardsGrid">
+  
+  <!-- Project 1: User is LEADER -->
+  <div class="project-card" data-project-role="leader" data-project-status="in-progress">
+    <div class="project-card-header">
+      <div class="project-title-group">
+        <h3 class="project-name">KaryaFlow Platform Hardening</h3>
+        <div class="project-card-meta-top">
+          <span class="project-status-pill in-progress">
+            <span class="status-indicator-dot"></span>
+            In Progress
+          </span>
+          <span>&bull;</span>
+          <span>Created Oct 15, 2026</span>
+        </div>
+      </div>
+      <span class="role-badge role-leader" title="You are the Project Leader">
+        <i data-lucide="crown" class="role-badge-icon"></i>
+        <span>Leader</span>
+      </span>
+    </div>
+
+    <p class="project-description">
+      Production stabilization, authentication workflows, responsive layouts, and accessibility compliance audit.
+    </p>
+
+    <div class="project-progress-wrap">
+      <div class="progress-meta-row">
+        <span class="progress-label">Progress (14/18 tasks completed)</span>
+        <span class="progress-value">78%</span>
+      </div>
+      <div class="project-progress-track">
+        <div class="project-progress-bar" style="width: 78%;"></div>
+      </div>
+    </div>
+
+    <div class="project-card-footer">
+      <div class="project-meta-members">
+        <i data-lucide="users" style="width: 15px; height: 15px; color: var(--text-muted);"></i>
+        <span>5 Members</span>
+      </div>
+
+      <div class="project-actions-group">
+        <a href="{% url 'project_detail' 1 %}" class="btn-project-action secondary" title="View workspace">
+          <i data-lucide="external-link" style="width: 13px; height: 13px;"></i>
+          <span>View Project</span>
+        </a>
+        <button class="btn-project-action secondary open-manage-project-modal" title="Manage project settings">
+          <i data-lucide="settings" style="width: 13px; height: 13px;"></i>
+          <span>Manage</span>
+        </button>
+        <button class="btn-project-action secondary open-manage-members-modal" title="Manage members">
+          <i data-lucide="user-plus" style="width: 13px; height: 13px;"></i>
+          <span>Members</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Project 2: User is MEMBER -->
+  <div class="project-card" data-project-role="member" data-project-status="in-progress">
+    <div class="project-card-header">
+      <div class="project-title-group">
+        <h3 class="project-name">Marketing &amp; Brand Guidelines</h3>
+        <div class="project-card-meta-top">
+          <span class="project-status-pill in-progress">
+            <span class="status-indicator-dot"></span>
+            In Progress
+          </span>
+          <span>&bull;</span>
+          <span>Created Oct 20, 2026</span>
+        </div>
+      </div>
+      <span class="role-badge role-member" title="You are a Project Member">
+        <i data-lucide="user" class="role-badge-icon"></i>
+        <span>Member</span>
+      </span>
+    </div>
+
+    <p class="project-description">
+      Design visual brand assets, icons, typography standards, and marketing collateral for public rollout.
+    </p>
+
+    <div class="project-progress-wrap">
+      <div class="progress-meta-row">
+        <span class="progress-label">Progress (5/11 tasks completed)</span>
+        <span class="progress-value">45%</span>
+      </div>
+      <div class="project-progress-track">
+        <div class="project-progress-bar" style="width: 45%;"></div>
+      </div>
+    </div>
+
+    <div class="project-card-footer">
+      <div class="project-meta-members">
+        <i data-lucide="users" style="width: 15px; height: 15px; color: var(--text-muted);"></i>
+        <span>4 Members</span>
+      </div>
+
+      <!-- Member: Only View Project allowed -->
+      <div class="project-actions-group">
+        <a href="{% url 'project_detail' 2 %}" class="btn-project-action secondary" title="View workspace">
+          <i data-lucide="external-link" style="width: 13px; height: 13px;"></i>
+          <span>View Project</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Project 3: User is LEADER -->
+  <div class="project-card" data-project-role="leader" data-project-status="planning">
+    <div class="project-card-header">
+      <div class="project-title-group">
+        <h3 class="project-name">Mobile Companion App R&amp;D</h3>
+        <div class="project-card-meta-top">
+          <span class="project-status-pill planning">
+            <span class="status-indicator-dot"></span>
+            Planning
+          </span>
+          <span>&bull;</span>
+          <span>Created Oct 28, 2026</span>
+        </div>
+      </div>
+      <span class="role-badge role-leader" title="You are the Project Leader">
+        <i data-lucide="crown" class="role-badge-icon"></i>
+        <span>Leader</span>
+      </span>
+    </div>
+
+    <p class="project-description">
+      Evaluate lightweight hybrid framework architectures and offline synchronization strategies for mobile.
+    </p>
+
+    <div class="project-progress-wrap">
+      <div class="progress-meta-row">
+        <span class="progress-label">Progress (1/6 tasks completed)</span>
+        <span class="progress-value">16%</span>
+      </div>
+      <div class="project-progress-track">
+        <div class="project-progress-bar" style="width: 16%;"></div>
+      </div>
+    </div>
+
+    <div class="project-card-footer">
+      <div class="project-meta-members">
+        <i data-lucide="users" style="width: 15px; height: 15px; color: var(--text-muted);"></i>
+        <span>3 Members</span>
+      </div>
+
+      <div class="project-actions-group">
+        <a href="{% url 'project_detail' 1 %}" class="btn-project-action secondary" title="View workspace">
+          <i data-lucide="external-link" style="width: 13px; height: 13px;"></i>
+          <span>View Project</span>
+        </a>
+        <button class="btn-project-action secondary open-manage-project-modal" title="Manage project settings">
+          <i data-lucide="settings" style="width: 13px; height: 13px;"></i>
+          <span>Manage</span>
+        </button>
+        <button class="btn-project-action secondary open-manage-members-modal" title="Manage members">
+          <i data-lucide="user-plus" style="width: 13px; height: 13px;"></i>
+          <span>Members</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{% else %}
+<!-- Empty State: User has no projects -->
+<div class="empty-state-box" id="noProjectsEmptyState">
+  <div class="empty-state-icon-wrap">
+    <i data-lucide="folder-plus" class="empty-state-svg"></i>
+  </div>
+  <h3 class="empty-state-title">No projects found</h3>
+  <p class="empty-state-desc">You are not part of any project yet. Create your own project or ask a team leader to invite you.</p>
+  {% if can_create_project or can_create_project is None %}
+  <button class="btn btn-primary open-create-project-modal">
+    <i data-lucide="plus" class="btn-icon"></i>
+    <span>Create Your First Project</span>
+  </button>
+  {% endif %}
+</div>
+{% endif %}
+
+<!-- Search-result Empty State (shown via JS when filters yield 0 matches) -->
+<div class="empty-state-box" id="projectSearchEmptyState" style="display: none;">
+  <div class="empty-state-icon-wrap">
+    <i data-lucide="search-x" class="empty-state-svg"></i>
+  </div>
+  <h3 class="empty-state-title">No matching projects</h3>
+  <p class="empty-state-desc">We couldn't find any projects matching your current search or filter criteria.</p>
+  <button class="btn btn-outline" id="btnResetProjectSearch">
+    <i data-lucide="rotate-ccw" class="btn-icon"></i>
+    <span>Reset Filters</span>
+  </button>
+</div>
+
+<!-- ======================== MODAL: CREATE PROJECT ======================== -->
+<div class="modal-backdrop-wrap" id="modalCreateProject" role="dialog" aria-modal="true" aria-labelledby="modalCreateProjectTitle">
+  <div class="modal-dialog-box">
+    <div class="modal-dialog-header">
+      <h3 class="modal-dialog-title" id="modalCreateProjectTitle">Create New Project</h3>
+      <button class="modal-close-trigger" aria-label="Close modal">
+        <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+      </button>
+    </div>
+
+    <!-- Django Form Submission Point -->
+    <form method="post" action="{% url 'my_projects' %}">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="create_project">
+
+      <div class="form-group">
+        <label class="form-label" for="newProjectName">Project Name <span class="label-required">*</span></label>
+        <div class="form-control-wrap">
+          <input type="text" id="newProjectName" name="name" class="form-input" placeholder="e.g. Mobile App Redesign" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="newProjectDesc">Description</label>
+        <textarea id="newProjectDesc" name="description" class="form-input" style="height: 90px; padding: 0.65rem 1rem;" placeholder="Brief summary of project objectives..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="newProjectStatus">Initial Status</label>
+        <select id="newProjectStatus" name="status" class="filter-select" style="width: 100%;">
+          <option value="Planning">Planning</option>
+          <option value="In Progress" selected>In Progress</option>
+          <option value="On Hold">On Hold</option>
+        </select>
+      </div>
+
+      <div class="modal-form-actions">
+        <button type="button" class="btn btn-outline modal-close-trigger">Cancel</button>
+        <button type="submit" class="btn btn-primary">
+          <i data-lucide="check" class="btn-icon"></i>
+          <span>Create Project</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ======================== MODAL: MANAGE PROJECT (Leader Only) ======================== -->
+<div class="modal-backdrop-wrap" id="modalManageProject" role="dialog" aria-modal="true" aria-labelledby="modalManageProjectTitle">
+  <div class="modal-dialog-box">
+    <div class="modal-dialog-header">
+      <h3 class="modal-dialog-title" id="modalManageProjectTitle">Manage Project</h3>
+      <button class="modal-close-trigger" aria-label="Close modal">
+        <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+      </button>
+    </div>
+
+    <form method="post" action="{% url 'my_projects' %}">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="update_project">
+      <input type="hidden" name="project_id" id="manageProjectId" value="">
+
+      <div class="form-group">
+        <label class="form-label" for="editProjectName">Project Name <span class="label-required">*</span></label>
+        <input type="text" id="editProjectName" name="name" class="form-input" value="KaryaFlow Platform Hardening" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="editProjectStatus">Status</label>
+        <select id="editProjectStatus" name="status" class="filter-select" style="width: 100%;">
+          <option value="In Progress" selected>In Progress</option>
+          <option value="Planning">Planning</option>
+          <option value="Completed">Completed</option>
+          <option value="On Hold">On Hold</option>
+        </select>
+      </div>
+
+      <div class="modal-form-actions">
+        <button type="button" class="btn btn-outline modal-close-trigger">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ======================== MODAL: MANAGE MEMBERS (Leader Only) ======================== -->
+<div class="modal-backdrop-wrap" id="modalManageMembers" role="dialog" aria-modal="true" aria-labelledby="modalManageMembersTitle">
+  <div class="modal-dialog-box">
+    <div class="modal-dialog-header">
+      <h3 class="modal-dialog-title" id="modalManageMembersTitle">Invite &amp; Manage Members</h3>
+      <button class="modal-close-trigger" aria-label="Close modal">
+        <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+      </button>
+    </div>
+
+    <form method="post" action="{% url 'my_projects' %}">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="invite_member">
+      
+      <div class="form-group">
+        <label class="form-label" for="memberEmail">User Email or Username <span class="label-required">*</span></label>
+        <div class="form-control-wrap">
+          <input type="text" id="memberEmail" name="identifier" class="form-input" placeholder="colleague@karyaflow.io" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="memberRoleSelect">Assigned Role</label>
+        <select id="memberRoleSelect" name="role" class="filter-select" style="width: 100%;">
+          <option value="member" selected>Member (Can view tasks &amp; update assigned status)</option>
+          <option value="leader">Leader (Can manage project, tasks &amp; members)</option>
+        </select>
+      </div>
+
+      <div class="modal-form-actions">
+        <button type="button" class="btn btn-outline modal-close-trigger">Cancel</button>
+        <button type="submit" class="btn btn-primary">
+          <i data-lucide="user-plus" class="btn-icon"></i>
+          <span>Add Member</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'js/projects.js' %}"></script>
+{% endblock %}

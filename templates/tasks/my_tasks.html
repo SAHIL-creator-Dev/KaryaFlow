@@ -1,0 +1,366 @@
+{% extends 'app_base.html' %}
+{% load static %}
+
+{% block title %}My Tasks — KaryaFlow{% endblock %}
+{% block nav_tasks %}active{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/tasks.css' %}">
+{% endblock %}
+
+{% block topbar_heading %}
+<h1 class="topbar-greeting">My Tasks</h1>
+<p class="topbar-subtext">Stay focused on the work assigned to you.</p>
+{% endblock %}
+
+{% block content %}
+<!-- ======================== 1. STATUS COUNTERS RIBBON ======================== -->
+<div class="tasks-status-ribbon" role="region" aria-label="Task Status Summary">
+  <!-- All Tasks -->
+  <div class="status-ribbon-card active" data-status-filter="all" title="View all assigned tasks">
+    <div class="status-ribbon-left">
+      <span class="ribbon-label">Total Assigned</span>
+      <span class="ribbon-count">{{ stats.total_assigned|default:4 }}</span>
+    </div>
+    <div class="ribbon-indicator-pill all">
+      <i data-lucide="layers" style="width: 18px; height: 18px;"></i>
+    </div>
+  </div>
+
+  <!-- To Do -->
+  <div class="status-ribbon-card" data-status-filter="pending" title="View To Do tasks">
+    <div class="status-ribbon-left">
+      <span class="ribbon-label">To Do</span>
+      <span class="ribbon-count">{{ stats.pending_count|default:1 }}</span>
+    </div>
+    <div class="ribbon-indicator-pill todo">
+      <i data-lucide="list-todo" style="width: 18px; height: 18px;"></i>
+    </div>
+  </div>
+
+  <!-- In Progress -->
+  <div class="status-ribbon-card" data-status-filter="in_progress" title="View in progress tasks">
+    <div class="status-ribbon-left">
+      <span class="ribbon-label">In Progress</span>
+      <span class="ribbon-count">{{ stats.in_progress_count|default:2 }}</span>
+    </div>
+    <div class="ribbon-indicator-pill in-progress">
+      <i data-lucide="clock" style="width: 18px; height: 18px;"></i>
+    </div>
+  </div>
+
+  <!-- Completed -->
+  <div class="status-ribbon-card" data-status-filter="completed" title="View completed tasks">
+    <div class="status-ribbon-left">
+      <span class="ribbon-label">Completed</span>
+      <span class="ribbon-count">{{ stats.completed_count|default:1 }}</span>
+    </div>
+    <div class="ribbon-indicator-pill completed">
+      <i data-lucide="check-circle-2" style="width: 18px; height: 18px;"></i>
+    </div>
+  </div>
+</div>
+
+<!-- ======================== 2. SEARCH & MULTI-FILTER TOOLBAR ======================== -->
+<div class="tasks-toolbar-panel" role="region" aria-label="Task Filters">
+  <!-- Search Input -->
+  <div class="tasks-search-wrap">
+    <input 
+      type="text" 
+      class="tasks-search-input" 
+      id="taskSearchInput" 
+      placeholder="Search assigned tasks by title..." 
+      aria-label="Search tasks"
+    >
+    <i data-lucide="search" class="tasks-search-icon"></i>
+  </div>
+
+  <!-- Filter Dropdowns Cluster -->
+  <div class="tasks-filters-cluster">
+    <!-- Filter by Project -->
+    <select class="filter-select" id="taskProjectFilter" aria-label="Filter by project">
+      <option value="all">All Projects</option>
+      {% if project_choices %}
+        {% for proj in project_choices %}
+        <option value="{{ proj.name|slugify }}">{{ proj.name }}</option>
+        {% endfor %}
+      {% else %}
+        <option value="karyaflow-platform-hardening">KaryaFlow Platform Hardening</option>
+        <option value="marketing-brand-guidelines">Marketing &amp; Brand Guidelines</option>
+      {% endif %}
+    </select>
+
+    <!-- Filter by Status -->
+    <select class="filter-select" id="taskStatusFilter" aria-label="Filter by status">
+      <option value="all">All Statuses</option>
+      <option value="pending">To Do</option>
+      <option value="in_progress">In Progress</option>
+      <option value="completed">Completed</option>
+    </select>
+
+    <!-- Filter by Priority -->
+    <select class="filter-select" id="taskPriorityFilter" aria-label="Filter by priority">
+      <option value="all">All Priorities</option>
+      <option value="high">High Priority</option>
+      <option value="medium">Medium Priority</option>
+      <option value="low">Low Priority</option>
+    </select>
+  </div>
+</div>
+
+<!-- ======================== 3. TASK LIST ======================== -->
+{% if tasks %}
+<!-- Real Backend Assigned Tasks Loop -->
+<div class="my-tasks-container">
+  {% for task in tasks %}
+  <div class="my-task-row {% if task.status == 'completed' %}is-completed{% endif %}"
+       data-task-status="{{ task.status|lower|default:'pending' }}"
+       data-task-project="{{ task.project_name|slugify }}"
+       data-task-priority="{{ task.priority|lower|default:'medium' }}"
+       id="my-task-{{ task.id }}">
+    
+    <div class="my-task-primary">
+      <!-- Quick status toggle checkbox (Member action) -->
+      <button class="my-task-checkbox" title="Mark as completed / in-progress" aria-label="Toggle task completion">
+        <i data-lucide="check" style="width: 13px; height: 13px;"></i>
+      </button>
+
+      <div class="my-task-details">
+        <h3 class="my-task-title">{{ task.title }}</h3>
+        
+        <div class="my-task-sub-meta">
+          <span class="my-task-project-tag">
+            <i data-lucide="folder" style="width: 12px; height: 12px;"></i>
+            {{ task.project_name }}
+          </span>
+
+          <span>&bull;</span>
+
+          <span class="my-task-date-item {% if task.is_overdue %}overdue{% endif %}">
+            <i data-lucide="calendar" style="width: 12px; height: 12px;"></i>
+            <span>Due {{ task.deadline|default:"No deadline" }}</span>
+          </span>
+
+          {% if task.assigned_date %}
+          <span>&bull;</span>
+          <span class="my-task-date-item">
+            <span>Assigned {{ task.assigned_date }}</span>
+          </span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="my-task-secondary">
+      <!-- Priority Badge -->
+      <span class="priority-tag {{ task.priority|lower }}">{{ task.priority|title }}</span>
+
+      <!-- Member Status Updater Dropdown (Permitted Member Action) -->
+      <form method="post" action="{% url 'my_tasks' %}" style="margin: 0; display: inline;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_task_status">
+        <input type="hidden" name="task_id" value="{{ task.id }}">
+        
+        <select name="status" class="status-dropdown-member {{ task.status|lower }}" aria-label="Update task status" onchange="this.form.submit()">
+          <option value="pending" {% if task.status == 'pending' %}selected{% endif %}>To Do</option>
+          <option value="in_progress" {% if task.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+          <option value="completed" {% if task.status == 'completed' %}selected{% endif %}>Completed</option>
+        </select>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% elif preview_mode %}
+<!-- Standalone Frontend Preview Tasks (Assigned specifically to Sahil Verma) -->
+<div class="my-tasks-container">
+  
+  <!-- Task 1: Overdue High Priority In Progress -->
+  <div class="my-task-row"
+       data-task-status="in_progress"
+       data-task-project="karyaflow-platform-hardening"
+       data-task-priority="high">
+    
+    <div class="my-task-primary">
+      <button class="my-task-checkbox" title="Mark as completed">
+        <i data-lucide="check" style="width: 13px; height: 13px;"></i>
+      </button>
+
+      <div class="my-task-details">
+        <h3 class="my-task-title">Audit accessibility &amp; responsive breakpoints</h3>
+        <div class="my-task-sub-meta">
+          <span class="my-task-project-tag">
+            <i data-lucide="folder" style="width: 12px; height: 12px;"></i>
+            KaryaFlow Platform Hardening
+          </span>
+          <span>&bull;</span>
+          <span class="my-task-date-item overdue">
+            <i data-lucide="alert-circle" style="width: 12px; height: 12px;"></i>
+            <span>Due Today, 5:00 PM (Urgent)</span>
+          </span>
+          <span>&bull;</span>
+          <span class="my-task-date-item">Assigned Oct 26</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="my-task-secondary">
+      <span class="priority-tag high">High</span>
+      <select class="status-dropdown-member in_progress" aria-label="Change status">
+        <option value="pending">To Do</option>
+        <option value="in_progress" selected>In Progress</option>
+        <option value="completed">Completed</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Task 2: Medium Priority Pending -->
+  <div class="my-task-row"
+       data-task-status="pending"
+       data-task-project="marketing-brand-guidelines"
+       data-task-priority="medium">
+    
+    <div class="my-task-primary">
+      <button class="my-task-checkbox" title="Mark as completed">
+        <i data-lucide="check" style="width: 13px; height: 13px;"></i>
+      </button>
+
+      <div class="my-task-details">
+        <h3 class="my-task-title">Export brand logo variants in SVG format</h3>
+        <div class="my-task-sub-meta">
+          <span class="my-task-project-tag">
+            <i data-lucide="folder" style="width: 12px; height: 12px;"></i>
+            Marketing &amp; Brand Guidelines
+          </span>
+          <span>&bull;</span>
+          <span class="my-task-date-item">
+            <i data-lucide="clock" style="width: 12px; height: 12px;"></i>
+            <span>Due Nov 04</span>
+          </span>
+          <span>&bull;</span>
+          <span class="my-task-date-item">Assigned Oct 28</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="my-task-secondary">
+      <span class="priority-tag medium">Medium</span>
+      <select class="status-dropdown-member todo" aria-label="Change status">
+        <option value="pending" selected>To Do</option>
+        <option value="in_progress">In Progress</option>
+        <option value="completed">Completed</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Task 3: Normal Priority In Progress -->
+  <div class="my-task-row"
+       data-task-status="in_progress"
+       data-task-project="karyaflow-platform-hardening"
+       data-task-priority="medium">
+    
+    <div class="my-task-primary">
+      <button class="my-task-checkbox" title="Mark as completed">
+        <i data-lucide="check" style="width: 13px; height: 13px;"></i>
+      </button>
+
+      <div class="my-task-details">
+        <h3 class="my-task-title">Verify keyboard navigation &amp; ARIA live regions</h3>
+        <div class="my-task-sub-meta">
+          <span class="my-task-project-tag">
+            <i data-lucide="folder" style="width: 12px; height: 12px;"></i>
+            KaryaFlow Platform Hardening
+          </span>
+          <span>&bull;</span>
+          <span class="my-task-date-item">
+            <i data-lucide="clock" style="width: 12px; height: 12px;"></i>
+            <span>Due Nov 08</span>
+          </span>
+          <span>&bull;</span>
+          <span class="my-task-date-item">Assigned Oct 29</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="my-task-secondary">
+      <span class="priority-tag medium">Medium</span>
+      <select class="status-dropdown-member in_progress" aria-label="Change status">
+        <option value="pending">To Do</option>
+        <option value="in_progress" selected>In Progress</option>
+        <option value="completed">Completed</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Task 4: Completed Task -->
+  <div class="my-task-row is-completed"
+       data-task-status="completed"
+       data-task-project="karyaflow-platform-hardening"
+       data-task-priority="low">
+    
+    <div class="my-task-primary">
+      <button class="my-task-checkbox" title="Mark as in-progress">
+        <i data-lucide="check" style="width: 13px; height: 13px;"></i>
+      </button>
+
+      <div class="my-task-details">
+        <h3 class="my-task-title">Configure Django session &amp; CSRF protection</h3>
+        <div class="my-task-sub-meta">
+          <span class="my-task-project-tag">
+            <i data-lucide="folder" style="width: 12px; height: 12px;"></i>
+            KaryaFlow Platform Hardening
+          </span>
+          <span>&bull;</span>
+          <span class="my-task-date-item">
+            <i data-lucide="check-circle" style="width: 12px; height: 12px; color: var(--status-success);"></i>
+            <span>Completed Oct 30</span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="my-task-secondary">
+      <span class="priority-tag low">Normal</span>
+      <select class="status-dropdown-member completed" aria-label="Change status">
+        <option value="pending">To Do</option>
+        <option value="in_progress">In Progress</option>
+        <option value="completed" selected>Completed</option>
+      </select>
+    </div>
+  </div>
+
+</div>
+
+{% else %}
+<!-- Empty State: No tasks assigned to current user -->
+<div class="empty-state-box" id="noAssignedTasksEmptyState">
+  <div class="empty-state-icon-wrap">
+    <i data-lucide="check-circle" class="empty-state-svg"></i>
+  </div>
+  <h3 class="empty-state-title">No tasks assigned to you</h3>
+  <p class="empty-state-desc">You are all caught up! When a project leader assigns tasks to you, they will appear here.</p>
+  <a href="{% url 'my_projects' %}" class="btn btn-outline">
+    <i data-lucide="folder-kanban" class="btn-icon"></i>
+    <span>Explore Projects</span>
+  </a>
+</div>
+{% endif %}
+
+<!-- Search / Filter Empty State (shown when filter query yields 0 tasks) -->
+<div class="empty-state-box" id="tasksSearchEmptyState" style="display: none;">
+  <div class="empty-state-icon-wrap">
+    <i data-lucide="search-x" class="empty-state-svg"></i>
+  </div>
+  <h3 class="empty-state-title">No matching tasks found</h3>
+  <p class="empty-state-desc">Try clearing your filters or adjusting your search term.</p>
+  <button class="btn btn-outline" id="btnResetTasksSearch">
+    <i data-lucide="rotate-ccw" class="btn-icon"></i>
+    <span>Reset Filters</span>
+  </button>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'js/tasks.js' %}"></script>
+{% endblock %}
