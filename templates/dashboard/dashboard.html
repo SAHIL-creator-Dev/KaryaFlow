@@ -161,21 +161,22 @@
         <!-- Date pill -->
         <div class="topbar-date-pill">
           <i data-lucide="calendar" class="topbar-date-icon"></i>
-          <span>{{ current_date|default:"Today, Oct 30" }}</span>
+          <span>{{ current_date|date:"l, M j, Y" }}</span>
         </div>
 
         <!-- Create Project Action (Rendered if user has project creation permission) -->
         {% if can_create_project or can_create_project is None or preview_mode %}
-        <button class="btn btn-primary" id="btnCreateProject" onclick="alert('Backend Integration: Trigger create project modal / route');">
+        <a class="btn btn-primary" id="btnCreateProject" href="{% url 'my_projects' %}">
           <i data-lucide="plus" class="btn-icon"></i>
           <span>Create Project</span>
-        </button>
+        </a>
         {% endif %}
       </div>
     </header>
 
     <!-- Dashboard Content Body -->
     <main class="dashboard-content-body">
+      {% include 'projects/_messages.html' %}
 
       <!-- ======================== 3. SUMMARY STATISTICS CARDS ======================== -->
       <section class="stats-overview-grid" aria-label="Workspace Statistics">
@@ -272,6 +273,9 @@
                 0
               {% endif %}
             </span>
+            <span class="dashboard-project-role-counts">
+              {{ stats.leader_projects }} Leader · {{ stats.member_projects }} Member
+            </span>
           </div>
         </div>
 
@@ -304,7 +308,7 @@
             <!-- Progress Bar -->
             <div class="project-progress-wrap">
               <div class="progress-meta-row">
-                <span class="progress-label">Progress ({{ project.completed_tasks|default:0 }}/{{ project.total_tasks|default:0 }} tasks)</span>
+                <span class="progress-label">Progress ({{ project.completed_tasks }}/{{ project.total_tasks }} tasks)</span>
                 <span class="progress-value">{{ project.progress|default:0 }}%</span>
               </div>
               <div class="project-progress-track">
@@ -316,24 +320,24 @@
             <div class="project-card-footer">
               <div class="project-meta-members">
                 <i data-lucide="users" style="width: 15px; height: 15px; color: var(--text-muted);"></i>
-                <span>{{ project.member_count|default:1 }} Members</span>
+                <span>{{ project.member_count }} Members</span>
               </div>
 
               <div class="project-actions-group">
                 {% if project.is_leader or project.user_role|lower == 'leader' %}
                   <!-- Leader Actions: Manage Project, Members, Create Task -->
-                  <button class="btn-project-action secondary" title="Manage project settings" onclick="alert('Backend Integration: Manage Project #{{ project.id }}');">
+                  <a href="{% url 'project_detail' project.id %}" class="btn-project-action secondary" title="Manage project settings">
                     <i data-lucide="settings" style="width: 13px; height: 13px;"></i>
                     <span>Manage</span>
-                  </button>
-                  <button class="btn-project-action secondary" title="Invite & manage members" onclick="alert('Backend Integration: Manage Members #{{ project.id }}');">
+                  </a>
+                  <a href="{% url 'project_detail' project.id %}#team-members" class="btn-project-action secondary" title="Invite & manage members">
                     <i data-lucide="user-plus" style="width: 13px; height: 13px;"></i>
                     <span>Members</span>
-                  </button>
-                  <button class="btn-project-action primary" title="Create a new task" onclick="alert('Backend Integration: Create Task for Project #{{ project.id }}');">
+                  </a>
+                  <a href="{% url 'project_detail' project.id %}#create-task" class="btn-project-action primary" title="Create and assign a task">
                     <i data-lucide="plus" style="width: 13px; height: 13px;"></i>
                     <span>Add Task</span>
-                  </button>
+                  </a>
                 {% else %}
                   <!-- Member Action: View Project Only -->
                   <a href="{% if project.id %}{% url 'project_detail' project.id %}{% else %}#{% endif %}" class="btn-project-action secondary" title="View project overview">
@@ -453,10 +457,10 @@
           </div>
           <h3 class="empty-state-title">No projects yet</h3>
           <p class="empty-state-desc">Create your first project and bring your team together in seamless flow.</p>
-          <button class="btn btn-primary" onclick="alert('Backend Integration: Create Project');">
+          <a class="btn btn-primary" href="{% url 'my_projects' %}">
             <i data-lucide="plus" class="btn-icon"></i>
             <span>Create First Project</span>
-          </button>
+          </a>
         </div>
         {% endif %}
       </section>
@@ -487,23 +491,29 @@
             {% for task in tasks %}
             <div class="task-item-card {% if task.status == 'completed' %}is-completed{% elif task.status == 'in_progress' %}is-in-progress{% endif %}">
               <div class="task-item-left">
-                <!-- Status checkbox toggle button -->
-                <button class="task-status-btn" title="Toggle status" aria-label="Update task status">
-                  <i data-lucide="check" style="width: 12px; height: 12px;"></i>
-                </button>
                 <div class="task-info-content">
                   <span class="task-main-title">{{ task.title }}</span>
                   <div class="task-sub-meta">
-                    <span class="task-project-pill">{{ task.project_name }}</span>
+                    <span class="task-project-pill">{{ task.project.name }}</span>
                     <span>&bull;</span>
-                    <span>Due {{ task.deadline|default:"Not specified" }}</span>
+                    <span>{% if task.deadline %}Due {{ task.deadline|date:"M j" }}{% else %}No deadline{% endif %}</span>
                   </div>
                 </div>
               </div>
 
               <div class="task-item-right">
                 <span class="priority-tag {{ task.priority|lower|default:'medium' }}">{{ task.priority|title|default:"Medium" }}</span>
-                <span class="status-badge-tag {{ task.status|lower }}">{{ task.status|title }}</span>
+                <form method="post" action="{% url 'update_task_status' task.id %}" class="dashboard-task-status-form">
+                  {% csrf_token %}
+                  <input type="hidden" name="next" value="{% url 'dashboard' %}">
+                  <label class="visually-hidden" for="dashboard-task-status-{{ task.id }}">Status for {{ task.title }}</label>
+                  <select id="dashboard-task-status-{{ task.id }}" name="status" class="dashboard-task-status-select" onchange="this.form.submit()">
+                    {% for status_value, status_label in task_status_choices %}
+                    <option value="{{ status_value }}" {% if task.status == status_value %}selected{% endif %}>{{ status_label }}</option>
+                    {% endfor %}
+                  </select>
+                  <button class="dashboard-task-status-save" type="submit">Save</button>
+                </form>
               </div>
             </div>
             {% endfor %}

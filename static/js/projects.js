@@ -118,6 +118,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     triggers.forEach(t => t.addEventListener('click', (e) => {
       e.preventDefault();
+      const projectId = t.getAttribute('data-project-id');
+      const projectCard = t.closest('.project-card');
+      if (modalId === 'modalManageProject' && projectCard) {
+        const projectName = modal.querySelector('[name="name"]');
+        const projectDescription = modal.querySelector('[name="description"]');
+        const projectStatus = modal.querySelector('[name="status"]');
+        const projectIdInput = modal.querySelector('[name="project_id"]');
+        if (projectName) projectName.value = projectCard.getAttribute('data-project-name') || '';
+        if (projectDescription) projectDescription.value = projectCard.getAttribute('data-project-description') || '';
+        if (projectStatus) projectStatus.value = projectCard.getAttribute('data-project-status') || '';
+        if (projectIdInput) projectIdInput.value = projectId || projectCard.getAttribute('data-project-id') || '';
+      }
+      if (modalId === 'modalManageMembers' && projectId) {
+        const projectIdInput = modal.querySelector('[name="project_id"]');
+        if (projectIdInput) projectIdInput.value = projectId;
+      }
       openModal();
     }));
 
@@ -139,6 +155,13 @@ document.addEventListener('DOMContentLoaded', () => {
   setupModal('.open-create-task-modal', 'modalCreateTask');
   setupModal('.open-manage-members-modal', 'modalManageMembers');
   setupModal('.open-manage-project-modal', 'modalManageProject');
+
+  const taskModal = document.getElementById('modalCreateTask');
+  if (taskModal && window.location.hash === '#create-task') {
+    taskModal.classList.add('is-visible');
+    document.body.style.overflow = 'hidden';
+    taskModal.querySelector('input, select, textarea')?.focus();
+  }
 
   // Initialize Lucide icons
   if (window.lucide && typeof window.lucide.createIcons === 'function') {

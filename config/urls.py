@@ -19,7 +19,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
-from django.contrib.auth.decorators import login_required
+from . import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -30,28 +30,14 @@ urlpatterns = [
 
     # Protected Core Application Workspace Routes
     path(
-        'dashboard/', 
-        login_required(TemplateView.as_view(template_name='dashboard/dashboard.html', extra_context={'preview_mode': True})), 
+        'dashboard/',
+        views.dashboard_view,
         name='dashboard'
     ),
-    path(
-        'projects/', 
-        login_required(TemplateView.as_view(template_name='projects/my_projects.html', extra_context={'preview_mode': True, 'can_create_project': True})), 
-        name='my_projects'
-    ),
-    path(
-        'projects/<int:pk>/', 
-        login_required(TemplateView.as_view(template_name='projects/project_detail.html', extra_context={'preview_mode': True, 'is_leader': True})), 
-        name='project_detail'
-    ),
-    path(
-        'tasks/', 
-        login_required(TemplateView.as_view(template_name='tasks/my_tasks.html', extra_context={'preview_mode': True})), 
-        name='my_tasks'
-    ),
+    path('projects/', include('projects.urls')),
+    path('tasks/', include('tasks.urls')),
 ]
 
 # Serve media files in local development
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-

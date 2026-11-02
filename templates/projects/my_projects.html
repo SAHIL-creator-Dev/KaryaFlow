@@ -24,8 +24,9 @@
 {% endblock %}
 
 {% block content %}
+{% include 'projects/_messages.html' %}
 <!-- ======================== SEARCH & FILTER TOOLBAR ======================== -->
-<div class="projects-toolbar" role="region" aria-label="Project Filters">
+<form method="get" class="projects-toolbar" role="search" aria-label="Project Filters">
   <!-- Search input -->
   <div class="projects-search-box">
     <input 
@@ -34,6 +35,8 @@
       id="projectSearchInput" 
       placeholder="Search projects by name or description..." 
       aria-label="Search projects"
+      name="q"
+      value="{{ search_query }}"
     >
     <i data-lucide="search" class="projects-search-icon"></i>
   </div>
@@ -41,14 +44,14 @@
   <div class="projects-filter-group">
     <!-- Role filter tabs: All, Leader, Member -->
     <div class="filter-pill-tabs" role="tablist" aria-label="Filter by role">
-      <button class="filter-tab-btn active" data-role-filter="all" role="tab" aria-selected="true">
+      <button class="filter-tab-btn {% if role_filter == 'all' %}active{% endif %}" data-role-filter="all" name="role" value="all" type="submit" role="tab" aria-selected="{% if role_filter == 'all' %}true{% else %}false{% endif %}">
         All
       </button>
-      <button class="filter-tab-btn" data-role-filter="leader" role="tab" aria-selected="false">
+      <button class="filter-tab-btn {% if role_filter == 'leader' %}active{% endif %}" data-role-filter="leader" name="role" value="leader" type="submit" role="tab" aria-selected="{% if role_filter == 'leader' %}true{% else %}false{% endif %}">
         <i data-lucide="crown" style="width: 14px; height: 14px;"></i>
         Leader
       </button>
-      <button class="filter-tab-btn" data-role-filter="member" role="tab" aria-selected="false">
+      <button class="filter-tab-btn {% if role_filter == 'member' %}active{% endif %}" data-role-filter="member" name="role" value="member" type="submit" role="tab" aria-selected="{% if role_filter == 'member' %}true{% else %}false{% endif %}">
         <i data-lucide="user" style="width: 14px; height: 14px;"></i>
         Member
       </button>
@@ -56,14 +59,15 @@
 
     <!-- Status filter dropdown -->
     <select class="filter-select" id="projectStatusFilter" aria-label="Filter by project status">
-      <option value="all">All Statuses</option>
-      <option value="in-progress">In Progress</option>
-      <option value="planning">Planning</option>
-      <option value="completed">Completed</option>
-      <option value="on-hold">On Hold</option>
+      <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Statuses</option>
+      <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>In Progress</option>
+      <option value="planning" {% if status_filter == 'planning' %}selected{% endif %}>Planning</option>
+      <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+      <option value="on_hold" {% if status_filter == 'on_hold' %}selected{% endif %}>On Hold</option>
     </select>
   </div>
-</div>
+  <button class="btn btn-outline" type="submit">Apply filters</button>
+</form>
 
 <!-- ======================== PROJECTS CARDS GRID ======================== -->
 {% if projects %}
@@ -72,19 +76,23 @@
   {% for project in projects %}
   <div class="project-card" 
        data-project-role="{% if project.is_leader or project.user_role|lower == 'leader' %}leader{% else %}member{% endif %}"
-       data-project-status="{{ project.status|slugify|default:'in-progress' }}">
+       data-project-status="{{ project.status_code }}"
+       data-project-id="{{ project.id }}"
+       data-project-name="{{ project.name }}"
+       data-project-description="{{ project.description }}"
+       data-project-status-label="{{ project.status }}">
     
     <div class="project-card-header">
       <div class="project-title-group">
         <h3 class="project-name">{{ project.name }}</h3>
         <div class="project-card-meta-top">
-          <span class="project-status-pill {{ project.status|slugify|default:'in-progress' }}">
+          <span class="project-status-pill {{ project.status|slugify }}">
             <span class="status-indicator-dot"></span>
             {{ project.status|default:"In Progress" }}
           </span>
           {% if project.created_at %}
           <span>&bull;</span>
-          <span>Created {{ project.created_at }}</span>
+          <span>Created {{ project.created_at|date:"M j, Y" }}</span>
           {% endif %}
         </div>
       </div>
@@ -120,7 +128,7 @@
     <div class="project-card-footer">
       <div class="project-meta-members">
         <i data-lucide="users" style="width: 15px; height: 15px; color: var(--text-muted);"></i>
-        <span>{{ project.member_count|default:1 }} Members</span>
+        <span>{{ project.member_count }} Members</span>
       </div>
 
       <div class="project-actions-group">
@@ -377,9 +385,9 @@
       <div class="form-group">
         <label class="form-label" for="newProjectStatus">Initial Status</label>
         <select id="newProjectStatus" name="status" class="filter-select" style="width: 100%;">
-          <option value="Planning">Planning</option>
-          <option value="In Progress" selected>In Progress</option>
-          <option value="On Hold">On Hold</option>
+          <option value="planning">Planning</option>
+          <option value="in_progress" selected>In Progress</option>
+          <option value="on_hold">On Hold</option>
         </select>
       </div>
 
@@ -415,12 +423,17 @@
       </div>
 
       <div class="form-group">
+        <label class="form-label" for="editProjectDescription">Description</label>
+        <textarea id="editProjectDescription" name="description" class="form-input" style="height: 80px; padding: 0.65rem 1rem;"></textarea>
+      </div>
+
+      <div class="form-group">
         <label class="form-label" for="editProjectStatus">Status</label>
         <select id="editProjectStatus" name="status" class="filter-select" style="width: 100%;">
-          <option value="In Progress" selected>In Progress</option>
-          <option value="Planning">Planning</option>
-          <option value="Completed">Completed</option>
-          <option value="On Hold">On Hold</option>
+          <option value="in_progress">In Progress</option>
+          <option value="planning">Planning</option>
+          <option value="completed">Completed</option>
+          <option value="on_hold">On Hold</option>
         </select>
       </div>
 
@@ -445,6 +458,7 @@
     <form method="post" action="{% url 'my_projects' %}">
       {% csrf_token %}
       <input type="hidden" name="action" value="invite_member">
+      <input type="hidden" name="project_id" id="inviteProjectId" value="">
       
       <div class="form-group">
         <label class="form-label" for="memberEmail">User Email or Username <span class="label-required">*</span></label>
@@ -457,7 +471,7 @@
         <label class="form-label" for="memberRoleSelect">Assigned Role</label>
         <select id="memberRoleSelect" name="role" class="filter-select" style="width: 100%;">
           <option value="member" selected>Member (Can view tasks &amp; update assigned status)</option>
-          <option value="leader">Leader (Can manage project, tasks &amp; members)</option>
+          <option value="leader">Leader (Can manage project &amp; members)</option>
         </select>
       </div>
 

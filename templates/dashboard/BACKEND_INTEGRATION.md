@@ -1,8 +1,8 @@
 # KaryaFlow Dashboard — Backend Integration Contract
 
-This document outlines the context variables and contract expected by [`templates/dashboard/dashboard.html`](file:///e:/PROJECTS%20%28UTU%29/MINI%20PROJECT%205TH%20SEM/PROJECT/KaryaFlow/templates/dashboard/dashboard.html).
+This document outlines the context variables used by `templates/dashboard/dashboard.html`.
 
-The template is **100% production-ready**: when real backend context is passed, it renders live models. If any section is empty, it displays graceful empty states. Additionally, for design review and standalone frontend validation without a database, a dedicated preview toggle (`?preview=true`) is supported.
+The authenticated dashboard view supplies live project memberships, assigned tasks, and summary counts. Empty project and task lists render their empty states instead of sample data.
 
 ---
 
@@ -28,7 +28,9 @@ The template is **100% production-ready**: when real backend context is passed, 
 {
     'stats': {
         'total_projects': 4,       # Integer: count of projects user is a member/leader of
-        'active_tasks': 8,         # Integer: count of pending/in-progress tasks assigned to user
+        'leader_projects': 2,      # Integer: project memberships where the user is a leader
+        'member_projects': 2,      # Integer: project memberships where the user is a member
+        'active_tasks': 8,          # Integer: count of pending/in-progress tasks assigned to user
         'completed_tasks': 14,     # Integer: count of completed tasks assigned to user
         'pending_tasks': 3,        # Integer: count of tasks yet to be started
     }
@@ -74,10 +76,10 @@ A list of project objects or dictionaries. **Critical:** Permissions are evaluat
 #### Project Actions Triggered by Role:
 - When `project.is_leader` (or `project.user_role == 'leader'`):
   - Displays: **Leader** badge (terracotta warm pill)
-  - Actions: **Manage Project**, **Manage Members**, **Create Task**
+  - Actions: **Manage Project**, **Manage Members**
 - When `not project.is_leader` (or `project.user_role == 'member'`):
   - Displays: **Member** badge (sand/slate neutral pill)
-  - Actions: **View Project** (no administrative or task creation controls)
+  - Action: **View Project** (no administrative controls)
 
 ---
 
