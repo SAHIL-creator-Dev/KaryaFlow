@@ -28,7 +28,9 @@ The authenticated dashboard view supplies live project memberships, assigned tas
 {
     'stats': {
         'total_projects': 4,       # Integer: count of projects user is a member/leader of
-        'active_tasks': 8,         # Integer: count of pending/in-progress tasks assigned to user
+        'leader_projects': 2,      # Integer: project memberships where the user is a leader
+        'member_projects': 2,      # Integer: project memberships where the user is a member
+        'active_tasks': 8,          # Integer: count of pending/in-progress tasks assigned to user
         'completed_tasks': 14,     # Integer: count of completed tasks assigned to user
         'pending_tasks': 3,        # Integer: count of tasks yet to be started
     }
@@ -74,10 +76,10 @@ A list of project objects or dictionaries. **Critical:** Permissions are evaluat
 #### Project Actions Triggered by Role:
 - When `project.is_leader` (or `project.user_role == 'leader'`):
   - Displays: **Leader** badge (terracotta warm pill)
-  - Actions: **Manage Project**, **Manage Members**, **Create Task**
+  - Actions: **Manage Project**, **Manage Members**
 - When `not project.is_leader` (or `project.user_role == 'member'`):
   - Displays: **Member** badge (sand/slate neutral pill)
-  - Actions: **View Project** (no administrative or task creation controls)
+  - Action: **View Project** (no administrative controls)
 
 ---
 

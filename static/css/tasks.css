@@ -325,6 +325,30 @@
   border-color: #BCDFCA;
 }
 
+.my-task-status-form {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+}
+
+.task-status-save {
+  padding: 0.35rem 0.6rem;
+  color: var(--accent-deep);
+  background: var(--bg-accent-soft);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-full);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.task-status-save:hover {
+  color: #FFFFFF;
+  background: var(--accent-primary);
+}
+
 /* --------------------------------------------------------------------------
    4. Responsive Breakpoints for My Tasks
    -------------------------------------------------------------------------- */

@@ -31,10 +31,13 @@ def dashboard_view(request):
         member_count=Count('project__memberships', distinct=True),
     )
     projects = []
+    leader_projects = 0
     for membership in memberships:
         project = membership.project
         total_tasks = membership.total_tasks
         completed_tasks = membership.completed_tasks
+        is_leader = membership.role == ProjectMembership.Role.LEADER
+        leader_projects += int(is_leader)
         projects.append({
             'id': project.pk,
             'name': project.name,
@@ -45,16 +48,20 @@ def dashboard_view(request):
             'total_tasks': total_tasks,
             'member_count': membership.member_count,
             'user_role': membership.role,
-            'is_leader': membership.role == ProjectMembership.Role.LEADER,
+            'is_leader': is_leader,
         })
 
     context = {
         'current_date': timezone.localdate(),
+        'can_create_project': True,
         'stats': {
             'total_projects': len(projects),
+            'leader_projects': leader_projects,
+            'member_projects': len(projects) - leader_projects,
             **task_stats,
         },
         'projects': projects,
         'tasks': task_queryset.select_related('project'),
+        'task_status_choices': Task.Status.choices,
     }
     return render(request, 'dashboard/dashboard.html', context)

@@ -14,13 +14,14 @@
 {% endblock %}
 
 {% block content %}
+{% include 'projects/_messages.html' %}
 <!-- ======================== 1. STATUS COUNTERS RIBBON ======================== -->
 <div class="tasks-status-ribbon" role="region" aria-label="Task Status Summary">
   <!-- All Tasks -->
   <div class="status-ribbon-card active" data-status-filter="all" title="View all assigned tasks">
     <div class="status-ribbon-left">
       <span class="ribbon-label">Total Assigned</span>
-      <span class="ribbon-count">{{ stats.total_assigned|default:4 }}</span>
+      <span class="ribbon-count">{{ stats.total_assigned|default_if_none:"0" }}</span>
     </div>
     <div class="ribbon-indicator-pill all">
       <i data-lucide="layers" style="width: 18px; height: 18px;"></i>
@@ -31,7 +32,7 @@
   <div class="status-ribbon-card" data-status-filter="pending" title="View To Do tasks">
     <div class="status-ribbon-left">
       <span class="ribbon-label">To Do</span>
-      <span class="ribbon-count">{{ stats.pending_count|default:1 }}</span>
+      <span class="ribbon-count">{{ stats.pending_count|default_if_none:"0" }}</span>
     </div>
     <div class="ribbon-indicator-pill todo">
       <i data-lucide="list-todo" style="width: 18px; height: 18px;"></i>
@@ -42,7 +43,7 @@
   <div class="status-ribbon-card" data-status-filter="in_progress" title="View in progress tasks">
     <div class="status-ribbon-left">
       <span class="ribbon-label">In Progress</span>
-      <span class="ribbon-count">{{ stats.in_progress_count|default:2 }}</span>
+      <span class="ribbon-count">{{ stats.in_progress_count|default_if_none:"0" }}</span>
     </div>
     <div class="ribbon-indicator-pill in-progress">
       <i data-lucide="clock" style="width: 18px; height: 18px;"></i>
@@ -53,7 +54,7 @@
   <div class="status-ribbon-card" data-status-filter="completed" title="View completed tasks">
     <div class="status-ribbon-left">
       <span class="ribbon-label">Completed</span>
-      <span class="ribbon-count">{{ stats.completed_count|default:1 }}</span>
+      <span class="ribbon-count">{{ stats.completed_count|default_if_none:"0" }}</span>
     </div>
     <div class="ribbon-indicator-pill completed">
       <i data-lucide="check-circle-2" style="width: 18px; height: 18px;"></i>
@@ -114,31 +115,26 @@
 <div class="my-tasks-container">
   {% for task in tasks %}
   <div class="my-task-row {% if task.status == 'completed' %}is-completed{% endif %}"
-       data-task-status="{{ task.status|lower|default:'pending' }}"
-       data-task-project="{{ task.project_name|slugify }}"
-       data-task-priority="{{ task.priority|lower|default:'medium' }}"
-       id="my-task-{{ task.id }}">
+   data-task-status="{{ task.status|lower|default:'pending' }}"
+   data-task-project="{{ task.project.name|slugify }}"
+   data-task-priority="{{ task.priority|lower|default:'medium' }}"
+   id="my-task-{{ task.id }}">
     
     <div class="my-task-primary">
-      <!-- Quick status toggle checkbox (Member action) -->
-      <button class="my-task-checkbox" title="Mark as completed / in-progress" aria-label="Toggle task completion">
-        <i data-lucide="check" style="width: 13px; height: 13px;"></i>
-      </button>
-
-      <div class="my-task-details">
+  <div class="my-task-details">
         <h3 class="my-task-title">{{ task.title }}</h3>
         
         <div class="my-task-sub-meta">
           <span class="my-task-project-tag">
             <i data-lucide="folder" style="width: 12px; height: 12px;"></i>
-            {{ task.project_name }}
+            {{ task.project.name }}
           </span>
 
           <span>&bull;</span>
 
           <span class="my-task-date-item {% if task.is_overdue %}overdue{% endif %}">
             <i data-lucide="calendar" style="width: 12px; height: 12px;"></i>
-            <span>Due {{ task.deadline|default:"No deadline" }}</span>
+            <span>{% if task.deadline %}Due {{ task.deadline|date:"M j, Y" }}{% else %}No deadline{% endif %}</span>
           </span>
 
           {% if task.assigned_date %}
@@ -156,16 +152,16 @@
       <span class="priority-tag {{ task.priority|lower }}">{{ task.priority|title }}</span>
 
       <!-- Member Status Updater Dropdown (Permitted Member Action) -->
-      <form method="post" action="{% url 'my_tasks' %}" style="margin: 0; display: inline;">
+      <form method="post" action="{% url 'update_task_status' task.id %}" class="my-task-status-form">
         {% csrf_token %}
-        <input type="hidden" name="action" value="update_task_status">
-        <input type="hidden" name="task_id" value="{{ task.id }}">
+        <input type="hidden" name="next" value="{% url 'my_tasks' %}">
         
-        <select name="status" class="status-dropdown-member {{ task.status|lower }}" aria-label="Update task status" onchange="this.form.submit()">
+        <select name="status" class="status-dropdown-member {{ task.status|lower }}" aria-label="Update status for {{ task.title }}" onchange="this.form.submit()">
           <option value="pending" {% if task.status == 'pending' %}selected{% endif %}>To Do</option>
           <option value="in_progress" {% if task.status == 'in_progress' %}selected{% endif %}>In Progress</option>
           <option value="completed" {% if task.status == 'completed' %}selected{% endif %}>Completed</option>
         </select>
+        <button type="submit" class="task-status-save">Save</button>
       </form>
     </div>
   </div>

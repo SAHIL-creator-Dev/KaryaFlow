@@ -50,6 +50,8 @@ class DashboardViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context['stats'], {
             'total_projects': 2,
+            'leader_projects': 1,
+            'member_projects': 1,
             'active_tasks': 2,
             'completed_tasks': 1,
             'pending_tasks': 1,
@@ -79,6 +81,8 @@ class DashboardViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context['stats'], {
             'total_projects': 0,
+            'leader_projects': 0,
+            'member_projects': 0,
             'active_tasks': 0,
             'completed_tasks': 0,
             'pending_tasks': 0,

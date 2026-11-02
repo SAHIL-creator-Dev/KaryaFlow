@@ -169,7 +169,7 @@
         <!-- Date pill -->
         <div class="topbar-date-pill">
           <i data-lucide="calendar" class="topbar-date-icon"></i>
-          <span>{{ current_date|default:"Today, Oct 30" }}</span>
+          <span>{% if current_date %}{{ current_date|date:"l, M j, Y" }}{% else %}Today{% endif %}</span>
         </div>
 
         {% block topbar_actions %}
