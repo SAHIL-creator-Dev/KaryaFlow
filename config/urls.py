@@ -20,6 +20,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
 from django.contrib.auth.decorators import login_required
+from . import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -30,8 +31,8 @@ urlpatterns = [
 
     # Protected Core Application Workspace Routes
     path(
-        'dashboard/', 
-        login_required(TemplateView.as_view(template_name='dashboard/dashboard.html', extra_context={'preview_mode': True})), 
+        'dashboard/',
+        views.dashboard_view,
         name='dashboard'
     ),
     path(
@@ -54,4 +55,3 @@ urlpatterns = [
 # Serve media files in local development
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-

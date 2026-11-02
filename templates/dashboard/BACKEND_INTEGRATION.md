@@ -1,8 +1,8 @@
 # KaryaFlow Dashboard — Backend Integration Contract
 
-This document outlines the context variables and contract expected by [`templates/dashboard/dashboard.html`](file:///e:/PROJECTS%20%28UTU%29/MINI%20PROJECT%205TH%20SEM/PROJECT/KaryaFlow/templates/dashboard/dashboard.html).
+This document outlines the context variables used by `templates/dashboard/dashboard.html`.
 
-The template is **100% production-ready**: when real backend context is passed, it renders live models. If any section is empty, it displays graceful empty states. Additionally, for design review and standalone frontend validation without a database, a dedicated preview toggle (`?preview=true`) is supported.
+The authenticated dashboard view supplies live project memberships, assigned tasks, and summary counts. Empty project and task lists render their empty states instead of sample data.
 
 ---
 

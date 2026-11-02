@@ -161,7 +161,7 @@
         <!-- Date pill -->
         <div class="topbar-date-pill">
           <i data-lucide="calendar" class="topbar-date-icon"></i>
-          <span>{{ current_date|default:"Today, Oct 30" }}</span>
+          <span>{{ current_date|date:"l, M j, Y" }}</span>
         </div>
 
         <!-- Create Project Action (Rendered if user has project creation permission) -->
@@ -304,7 +304,7 @@
             <!-- Progress Bar -->
             <div class="project-progress-wrap">
               <div class="progress-meta-row">
-                <span class="progress-label">Progress ({{ project.completed_tasks|default:0 }}/{{ project.total_tasks|default:0 }} tasks)</span>
+                <span class="progress-label">Progress ({{ project.completed_tasks }}/{{ project.total_tasks }} tasks)</span>
                 <span class="progress-value">{{ project.progress|default:0 }}%</span>
               </div>
               <div class="project-progress-track">
@@ -316,7 +316,7 @@
             <div class="project-card-footer">
               <div class="project-meta-members">
                 <i data-lucide="users" style="width: 15px; height: 15px; color: var(--text-muted);"></i>
-                <span>{{ project.member_count|default:1 }} Members</span>
+                <span>{{ project.member_count }} Members</span>
               </div>
 
               <div class="project-actions-group">
@@ -487,23 +487,19 @@
             {% for task in tasks %}
             <div class="task-item-card {% if task.status == 'completed' %}is-completed{% elif task.status == 'in_progress' %}is-in-progress{% endif %}">
               <div class="task-item-left">
-                <!-- Status checkbox toggle button -->
-                <button class="task-status-btn" title="Toggle status" aria-label="Update task status">
-                  <i data-lucide="check" style="width: 12px; height: 12px;"></i>
-                </button>
                 <div class="task-info-content">
                   <span class="task-main-title">{{ task.title }}</span>
                   <div class="task-sub-meta">
-                    <span class="task-project-pill">{{ task.project_name }}</span>
+                    <span class="task-project-pill">{{ task.project.name }}</span>
                     <span>&bull;</span>
-                    <span>Due {{ task.deadline|default:"Not specified" }}</span>
+                    <span>{% if task.deadline %}Due {{ task.deadline|date:"M j" }}{% else %}No deadline{% endif %}</span>
                   </div>
                 </div>
               </div>
 
               <div class="task-item-right">
                 <span class="priority-tag {{ task.priority|lower|default:'medium' }}">{{ task.priority|title|default:"Medium" }}</span>
-                <span class="status-badge-tag {{ task.status|lower }}">{{ task.status|title }}</span>
+                <span class="status-badge-tag {% if task.status == 'in_progress' %}in-progress{% else %}{{ task.status }}{% endif %}">{{ task.get_status_display }}</span>
               </div>
             </div>
             {% endfor %}
