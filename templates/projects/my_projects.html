@@ -74,7 +74,7 @@
 <!-- Real Backend Projects Loop -->
 <div class="projects-cards-grid" id="projectsCardsGrid">
   {% for project in projects %}
-  <div class="project-card" 
+  <article class="project-card" 
        data-project-role="{% if project.is_leader or project.user_role|lower == 'leader' %}leader{% else %}member{% endif %}"
        data-project-status="{{ project.status_code }}"
        data-project-id="{{ project.id }}"
@@ -82,22 +82,12 @@
        data-project-description="{{ project.description }}"
        data-project-status-label="{{ project.status }}">
     
+    <!-- A. HEADER: Project Name (Left) & Role Badge (Right) -->
     <div class="project-card-header">
-      <div class="project-title-group">
-        <h3 class="project-name">{{ project.name }}</h3>
-        <div class="project-card-meta-top">
-          <span class="project-status-pill {{ project.status|slugify }}">
-            <span class="status-indicator-dot"></span>
-            {{ project.status|default:"In Progress" }}
-          </span>
-          {% if project.created_at %}
-          <span>&bull;</span>
-          <span>Created {{ project.created_at|date:"M j, Y" }}</span>
-          {% endif %}
-        </div>
-      </div>
+      <h3 class="project-name">
+        <a href="{% if project.id %}{% url 'project_detail' project.id %}{% else %}#{% endif %}" class="project-name-link">{{ project.name }}</a>
+      </h3>
 
-      <!-- Current User's Role Badge -->
       {% if project.is_leader or project.user_role|lower == 'leader' %}
       <span class="role-badge role-leader" title="You are the Project Leader">
         <i data-lucide="crown" class="role-badge-icon"></i>
@@ -111,47 +101,89 @@
       {% endif %}
     </div>
 
-    <p class="project-description">{{ project.description|default:"No description provided for this project." }}</p>
+    <!-- B. PROJECT INFORMATION: Status Pill + Date + Description -->
+    <div class="project-card-info">
+      <div class="project-card-meta-top">
+        <span class="project-status-pill {{ project.status|slugify }}">
+          <span class="status-indicator-dot"></span>
+          <span>{{ project.status|default:"In Progress" }}</span>
+        </span>
 
-    <!-- Task Progress Indicator -->
-    <div class="project-progress-wrap">
-      <div class="progress-meta-row">
-        <span class="progress-label">Progress ({{ project.completed_tasks|default:0 }}/{{ project.total_tasks|default:0 }} tasks)</span>
-        <span class="progress-value">{{ project.progress|default:0 }}%</span>
+        <span class="project-deadline-meta">
+          <i data-lucide="calendar" class="project-meta-icon"></i>
+          <span>
+            {% if project.deadline %}
+              Due {{ project.deadline|date:"M j, Y" }}
+            {% elif project.created_at %}
+              Created {{ project.created_at|date:"M j, Y" }}
+            {% else %}
+              No deadline
+            {% endif %}
+          </span>
+        </span>
       </div>
-      <div class="project-progress-track">
-        <div class="project-progress-bar" style="width: {{ project.progress|default:0 }}%;"></div>
+
+      {% if project.description %}
+      <p class="project-description">{{ project.description }}</p>
+      {% else %}
+      <p class="project-description is-empty">No project description specified.</p>
+      {% endif %}
+    </div>
+
+    <!-- C. PROJECT STATISTICS: Horizontal Stats + Progress Bar -->
+    <div class="project-card-stats-section">
+      <div class="project-stats-row">
+        <div class="project-stat-item">
+          <i data-lucide="check-square" class="project-stat-icon"></i>
+          <span><strong>{{ project.completed_tasks|default:0 }}</strong> / {{ project.total_tasks|default:0 }} Tasks</span>
+        </div>
+        <div class="project-stat-item">
+          <i data-lucide="users" class="project-stat-icon"></i>
+          <span><strong>{{ project.member_count|default:1 }}</strong> Member{{ project.member_count|pluralize }}</span>
+        </div>
+      </div>
+
+      <div class="project-progress-wrap">
+        <div class="progress-meta-row">
+          <span class="progress-label">Completion</span>
+          <span class="progress-value">{{ project.progress|default:0 }}%</span>
+        </div>
+        <div class="project-progress-track">
+          <div class="project-progress-bar" style="width: {{ project.progress|default:0 }}%;"></div>
+        </div>
       </div>
     </div>
 
-    <!-- Project Card Footer & Role-Based Actions -->
+    <!-- D. FOOTER ACTIONS -->
     <div class="project-card-footer">
-      <div class="project-meta-members">
-        <i data-lucide="users" style="width: 15px; height: 15px; color: var(--text-muted);"></i>
-        <span>{{ project.member_count }} Members</span>
-      </div>
-
       <div class="project-actions-group">
-        <!-- View Project action (Allowed for both Leader and Member) -->
-        <a href="{% if project.id %}{% url 'project_detail' project.id %}{% else %}#{% endif %}" class="btn-project-action secondary" title="View workspace">
-          <i data-lucide="external-link" style="width: 13px; height: 13px;"></i>
-          <span>View Project</span>
+        <a href="{% if project.id %}{% url 'project_detail' project.id %}{% else %}#{% endif %}" class="btn-project-action workspace" title="Open project workspace">
+          <i data-lucide="layout-grid" class="btn-action-icon"></i>
+          <span>Workspace</span>
         </a>
 
-        <!-- Leader-only Actions -->
         {% if project.is_leader or project.user_role|lower == 'leader' %}
-        <button class="btn-project-action secondary open-manage-project-modal" title="Manage project settings" data-project-id="{{ project.id }}">
-          <i data-lucide="settings" style="width: 13px; height: 13px;"></i>
-          <span>Manage</span>
-        </button>
-        <button class="btn-project-action secondary open-manage-members-modal" title="Manage team members" data-project-id="{{ project.id }}">
-          <i data-lucide="user-plus" style="width: 13px; height: 13px;"></i>
+        <button type="button" class="btn-project-action secondary open-manage-members-modal" title="Invite &amp; manage team members" data-project-id="{{ project.id }}">
+          <i data-lucide="users" class="btn-action-icon"></i>
           <span>Members</span>
         </button>
+        <button type="button" class="btn-project-action secondary open-manage-project-modal" title="Manage project settings" data-project-id="{{ project.id }}">
+          <i data-lucide="settings" class="btn-action-icon"></i>
+          <span>Manage</span>
+        </button>
+        <a href="{% url 'project_detail' project.id %}#create-task" class="btn-project-action primary" title="Create and assign a task">
+          <i data-lucide="plus" class="btn-action-icon"></i>
+          <span>Add Task</span>
+        </a>
+        {% else %}
+        <a href="{% url 'project_detail' project.id %}#team-members" class="btn-project-action secondary" title="View project members">
+          <i data-lucide="users" class="btn-action-icon"></i>
+          <span>Members</span>
+        </a>
         {% endif %}
       </div>
     </div>
-  </div>
+  </article>
   {% endfor %}
 </div>
 

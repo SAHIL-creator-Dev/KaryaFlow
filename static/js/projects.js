@@ -275,6 +275,21 @@ document.addEventListener('DOMContentLoaded', () => {
     taskModal.querySelector('input, select, textarea')?.focus();
   }
 
+  // 6. Inline Task Status Selector Color Sync
+  document.querySelectorAll('.project-task-status-select').forEach(selectEl => {
+    selectEl.addEventListener('change', () => {
+      selectEl.classList.remove(
+        'status-pending',
+        'status-in_progress',
+        'status-in_review',
+        'status-completed'
+      );
+      if (selectEl.value) {
+        selectEl.classList.add(`status-${selectEl.value}`);
+      }
+    });
+  });
+
   // Initialize Lucide icons
   if (window.lucide && typeof window.lucide.createIcons === 'function') {
     window.lucide.createIcons();

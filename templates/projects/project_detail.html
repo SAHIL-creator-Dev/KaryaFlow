@@ -163,18 +163,20 @@
 <div class="project-workspace-split">
   
   <!-- COLUMN 1: TASK MANAGEMENT SECTION -->
-  <section class="workspace-panel" aria-label="Project Tasks">
+  <section class="workspace-panel" id="project-tasks-section" aria-label="Project Tasks">
     <div class="workspace-panel-header">
       <div class="panel-title-wrap">
-        <i data-lucide="check-square" style="width: 20px; height: 20px; color: var(--accent-primary);"></i>
+        <div class="panel-header-icon" aria-hidden="true">
+          <i data-lucide="check-square" style="width: 17px; height: 17px;"></i>
+        </div>
         <h3 class="panel-title-text">Tasks</h3>
-        <span class="section-counter-badge">
+        <span class="section-counter-badge" title="Total tasks in project">
           {{ tasks|length }}
         </span>
       </div>
 
       {% if is_leader %}
-      <button class="btn btn-primary open-create-task-modal" data-open-task-modal="true" style="padding: 0.45rem 0.85rem; font-size: 0.825rem;">
+      <button type="button" class="btn btn-primary btn-sm-panel open-create-task-modal" data-open-task-modal="true">
         <i data-lucide="plus" class="btn-icon"></i>
         <span>Add Task</span>
       </button>
@@ -185,51 +187,72 @@
     {% if tasks %}
     <div class="project-tasks-list">
       {% for task in tasks %}
-      <div class="project-task-card {% if task.status == 'completed' %}is-completed{% endif %}" id="task-card-{{ task.id }}">
+      <article class="project-task-card {% if task.status == 'completed' %}is-completed{% endif %}" id="task-card-{{ task.id }}">
+        <!-- Primary Row: Title (Left) + Priority, Status & Actions (Right) -->
         <div class="task-card-main-row">
           <div class="task-card-title-group">
-            <!-- If member & assigned to user OR leader: show clickable toggle button -->
+            <span class="task-state-dot status-{{ task.status|slugify }}" aria-hidden="true"></span>
+            <h4 class="task-card-title">
+              <a href="{% url 'task_detail' task.id %}" class="task-card-title-link">{{ task.title }}</a>
+            </h4>
+          </div>
+
+          <div class="task-card-controls">
+            <!-- Priority Badge -->
+            <span class="priority-tag {{ task.priority|lower }}" title="Priority: {{ task.get_priority_display|default:task.priority|title }}">
+              {{ task.get_priority_display|default:task.priority|title }}
+            </span>
+
+            <!-- Status Management (Single unified status display — no duplicate badge) -->
             {% if is_leader or task.assigned_to_user %}
             <form method="post" action="{% url 'update_task_status' task.id %}" class="project-task-status-form">
               {% csrf_token %}
               <input type="hidden" name="next" value="{% url 'project_detail' project.id %}">
               <label class="visually-hidden" for="project-task-status-{{ task.id }}">Status for {{ task.title }}</label>
-              <select id="project-task-status-{{ task.id }}" name="status" class="project-task-status-select" onchange="this.form.submit()">
+              <select
+                id="project-task-status-{{ task.id }}"
+                name="status"
+                class="project-task-status-select status-{{ task.status|slugify }}"
+                aria-label="Update status for {{ task.title }}"
+                onchange="this.form.submit()"
+              >
                 {% for status_value, status_label in task_status_choices %}
                 <option value="{{ status_value }}" {% if task.status == status_value %}selected{% endif %}>{{ status_label }}</option>
                 {% endfor %}
               </select>
-              <button class="project-task-status-save" type="submit">Save</button>
+              <button class="project-task-status-save" type="submit" title="Save task status">Save</button>
             </form>
             {% else %}
-            <!-- View-only checkbox icon for tasks assigned to other members -->
-            <div class="task-status-btn" style="cursor: default; opacity: 0.5;">
-              <i data-lucide="check" style="width: 12px; height: 12px;"></i>
-            </div>
+            <span class="status-badge-tag {% if task.status == 'in_progress' %}in-progress{% else %}{{ task.status }}{% endif %}">
+              {{ task.get_status_display }}
+            </span>
             {% endif %}
 
-            <div>
-              <h4 class="task-card-title">{{ task.title }}</h4>
-            </div>
-          </div>
-
-          <!-- Tags: Priority and Status -->
-          <div class="task-card-tags">
-            <span class="priority-tag {{ task.priority|lower }}">{{ task.priority|title }}</span>
-            <span class="status-badge-tag {% if task.status == 'in_progress' %}in-progress{% else %}{{ task.status }}{% endif %}">{{ task.get_status_display }}</span>
-
-            <!-- Leader Actions: Edit, Delete -->
+            <!-- Leader Actions: Edit & Delete -->
             {% if is_leader %}
             <div class="task-action-btns">
-              <a href="{% url 'edit_task' task.id %}" class="task-icon-action open-edit-task-modal" title="Edit task" data-task-id="{{ task.id }}" data-task-title="{{ task.title }}" data-task-desc="{{ task.description }}" data-task-priority="{{ task.priority }}" data-task-status="{{ task.status }}" data-task-start-date="{{ task.start_date|date:'Y-m-d' }}" data-task-deadline="{{ task.deadline|date:'Y-m-d' }}" data-task-assigned-to="{{ task.assigned_to_id }}">
-                <i data-lucide="edit-3" style="width: 13px; height: 13px;"></i>
+              <a
+                href="{% url 'edit_task' task.id %}"
+                class="task-icon-action open-edit-task-modal"
+                title="Edit task"
+                aria-label="Edit {{ task.title }}"
+                data-task-id="{{ task.id }}"
+                data-task-title="{{ task.title }}"
+                data-task-desc="{{ task.description }}"
+                data-task-priority="{{ task.priority }}"
+                data-task-status="{{ task.status }}"
+                data-task-start-date="{{ task.start_date|date:'Y-m-d' }}"
+                data-task-deadline="{{ task.deadline|date:'Y-m-d' }}"
+                data-task-assigned-to="{{ task.assigned_to_id }}"
+              >
+                <i data-lucide="edit-3" style="width: 13.5px; height: 13.5px;"></i>
               </a>
-              <form method="post" action="{% url 'project_detail' project.id %}" style="display:inline; margin:0;" onsubmit="return confirm('Are you sure you want to delete task &quot;{{ task.title|escapejs }}&quot;?');">
+              <form method="post" action="{% url 'project_detail' project.id %}" class="task-delete-inline-form" onsubmit="return confirm('Are you sure you want to delete task &quot;{{ task.title|escapejs }}&quot;?');">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="delete_task">
                 <input type="hidden" name="task_id" value="{{ task.id }}">
-                <button type="submit" class="task-icon-action delete" title="Delete task">
-                  <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
+                <button type="submit" class="task-icon-action delete" title="Delete task" aria-label="Delete {{ task.title }}">
+                  <i data-lucide="trash-2" style="width: 13.5px; height: 13.5px;"></i>
                 </button>
               </form>
             </div>
@@ -241,46 +264,54 @@
         <p class="task-card-desc">{{ task.description }}</p>
         {% endif %}
 
+        <!-- Secondary Row: Assignee (Left) & Deadline (Right) -->
         <div class="task-card-footer-meta">
           <div class="task-assignee-info">
-            <div class="assignee-avatar-tiny">
+            <div class="assignee-avatar-tiny" aria-hidden="true">
               {{ task.assignee_initials|default:"TM" }}
             </div>
-            <span>{{ task.assignee_name|default:"Unassigned" }}</span>
+            <span class="assignee-name-text">
+              {{ task.assignee_name|default:"Unassigned" }}{% if task.assigned_to_user %} <span class="assignee-you-tag">(You)</span>{% endif %}
+            </span>
           </div>
 
           <div class="task-deadline-badge {% if task.is_overdue %}overdue{% endif %}">
-            <i data-lucide="clock" style="width: 13px; height: 13px;"></i>
-            <span>{% if task.deadline %}{{ task.deadline|date:"M j, Y" }}{% else %}No deadline{% endif %}</span>
+            {% if task.is_overdue %}
+            <i data-lucide="alert-circle" style="width: 13px; height: 13px;"></i>
+            <span>Due {{ task.deadline|date:"M j, Y" }} &bull; Overdue</span>
+            {% elif task.deadline %}
+            <i data-lucide="calendar" style="width: 13px; height: 13px;"></i>
+            <span>Due {{ task.deadline|date:"M j, Y" }}</span>
+            {% else %}
+            <i data-lucide="calendar" style="width: 13px; height: 13px;"></i>
+            <span>No deadline</span>
+            {% endif %}
           </div>
         </div>
-      </div>
+      </article>
       {% endfor %}
     </div>
 
     {% elif preview_mode %}
     <!-- Preview Mode Tasks -->
     <div class="project-tasks-list">
-      <!-- Task 1: Assigned to current user (In Progress) -->
-      <div class="project-task-card">
+      <article class="project-task-card">
         <div class="task-card-main-row">
           <div class="task-card-title-group">
-            <button class="task-status-btn" title="Toggle task status">
-              <i data-lucide="check" style="width: 12px; height: 12px;"></i>
-            </button>
+            <span class="task-state-dot status-in_progress" aria-hidden="true"></span>
             <h4 class="task-card-title">Audit accessibility &amp; responsive breakpoints</h4>
           </div>
 
-          <div class="task-card-tags">
+          <div class="task-card-controls">
             <span class="priority-tag high">High</span>
             <span class="status-badge-tag in-progress">In Progress</span>
 
             <div class="task-action-btns">
-              <button class="task-icon-action" title="Edit task" onclick="alert('Leader Action: Edit task details');">
-                <i data-lucide="edit-3" style="width: 13px; height: 13px;"></i>
+              <button type="button" class="task-icon-action" title="Edit task">
+                <i data-lucide="edit-3" style="width: 13.5px; height: 13.5px;"></i>
               </button>
-              <button class="task-icon-action delete" title="Delete task" onclick="alert('Leader Action: Delete task');">
-                <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
+              <button type="button" class="task-icon-action delete" title="Delete task">
+                <i data-lucide="trash-2" style="width: 13.5px; height: 13.5px;"></i>
               </button>
             </div>
           </div>
@@ -293,99 +324,15 @@
         <div class="task-card-footer-meta">
           <div class="task-assignee-info">
             <div class="assignee-avatar-tiny">SV</div>
-            <span>Sahil Verma (You)</span>
+            <span class="assignee-name-text">Sahil Verma <span class="assignee-you-tag">(You)</span></span>
           </div>
 
           <div class="task-deadline-badge">
-            <i data-lucide="clock" style="width: 13px; height: 13px;"></i>
-            <span>Tomorrow, 5:00 PM</span>
+            <i data-lucide="calendar" style="width: 13px; height: 13px;"></i>
+            <span>Due Tomorrow</span>
           </div>
         </div>
-      </div>
-
-      <!-- Task 2: Assigned to Mihir (Pending) -->
-      <div class="project-task-card">
-        <div class="task-card-main-row">
-          <div class="task-card-title-group">
-            <button class="task-status-btn" title="Toggle task status">
-              <i data-lucide="check" style="width: 12px; height: 12px;"></i>
-            </button>
-            <h4 class="task-card-title">Implement CSRF &amp; Secure Session Cookie Flags</h4>
-          </div>
-
-          <div class="task-card-tags">
-            <span class="priority-tag high">High</span>
-            <span class="status-badge-tag pending">To Do</span>
-
-            <div class="task-action-btns">
-              <button class="task-icon-action" title="Edit task">
-                <i data-lucide="edit-3" style="width: 13px; height: 13px;"></i>
-              </button>
-              <button class="task-icon-action delete" title="Delete task">
-                <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <p class="task-card-desc">
-          Add SESSION_COOKIE_HTTPONLY, CSRF_COOKIE_HTTPONLY, and strict samesite headers in config/settings.py.
-        </p>
-
-        <div class="task-card-footer-meta">
-          <div class="task-assignee-info">
-            <div class="assignee-avatar-tiny" style="background: #EAF2F8; color: #4C7DA7;">MD</div>
-            <span>Mihir Dave</span>
-          </div>
-
-          <div class="task-deadline-badge">
-            <i data-lucide="clock" style="width: 13px; height: 13px;"></i>
-            <span>Nov 05, 2026</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Task 3: Assigned to Aanya (Completed) -->
-      <div class="project-task-card is-completed">
-        <div class="task-card-main-row">
-          <div class="task-card-title-group">
-            <button class="task-status-btn" title="Toggle task status">
-              <i data-lucide="check" style="width: 12px; height: 12px;"></i>
-            </button>
-            <h4 class="task-card-title">Design role permission matrix &amp; UI boundaries</h4>
-          </div>
-
-          <div class="task-card-tags">
-            <span class="priority-tag medium">Medium</span>
-            <span class="status-badge-tag completed">Completed</span>
-
-            <div class="task-action-btns">
-              <button class="task-icon-action" title="Edit task">
-                <i data-lucide="edit-3" style="width: 13px; height: 13px;"></i>
-              </button>
-              <button class="task-icon-action delete" title="Delete task">
-                <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <p class="task-card-desc">
-          Document leader vs member access patterns, task update boundaries, and administrative actions.
-        </p>
-
-        <div class="task-card-footer-meta">
-          <div class="task-assignee-info">
-            <div class="assignee-avatar-tiny" style="background: #EAF3EE; color: #4F8A68;">AR</div>
-            <span>Aanya Roy</span>
-          </div>
-
-          <div class="task-deadline-badge">
-            <i data-lucide="check-circle" style="width: 13px; height: 13px; color: var(--status-success);"></i>
-            <span>Completed</span>
-          </div>
-        </div>
-      </div>
+      </article>
     </div>
 
     {% else %}
@@ -397,7 +344,7 @@
       <h4 class="empty-state-title">No tasks in this project yet</h4>
       <p class="empty-state-desc">Break down the project goals into organized tasks and assign them to team members.</p>
       {% if is_leader %}
-      <button class="btn btn-primary open-create-task-modal" data-open-task-modal="true">
+      <button type="button" class="btn btn-primary open-create-task-modal" data-open-task-modal="true">
         <i data-lucide="plus" class="btn-icon"></i>
         <span>Create First Task</span>
       </button>
@@ -410,7 +357,9 @@
   <aside class="workspace-panel" id="team-members" aria-label="Team Members">
     <div class="workspace-panel-header">
       <div class="panel-title-wrap">
-        <i data-lucide="users" style="width: 20px; height: 20px; color: var(--accent-primary);"></i>
+        <div class="panel-header-icon" aria-hidden="true">
+          <i data-lucide="users" style="width: 17px; height: 17px;"></i>
+        </div>
         <h3 class="panel-title-text">Team Members</h3>
         <span class="section-counter-badge">
           {{ members|length }}
@@ -419,7 +368,7 @@
 
       <!-- Leader-only member management button -->
       {% if is_leader %}
-      <button class="btn btn-outline open-manage-members-modal" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;" title="Invite new member">
+      <button type="button" class="btn btn-outline btn-sm-panel open-manage-members-modal" title="Invite new member">
         <i data-lucide="user-plus" class="btn-icon"></i>
         <span>Invite</span>
       </button>
