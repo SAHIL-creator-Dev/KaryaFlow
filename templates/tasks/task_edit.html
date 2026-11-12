@@ -39,65 +39,130 @@
   </div>
 
   <div class="task-edit-card">
-    <form method="post" action="{% url 'edit_task' task.id %}">
+    <form method="post" action="{% url 'edit_task' task.id %}" class="kf-task-form kf-validated-form">
       {% csrf_token %}
 
-      <div class="form-group" style="margin-bottom: 1.25rem;">
-        <label class="form-label" for="taskTitle">Task Title <span class="label-required">*</span></label>
-        <input type="text" id="taskTitle" name="title" class="form-input" value="{{ task.title }}" maxlength="200" required>
-      </div>
-
-      <div class="form-group" style="margin-bottom: 1.25rem;">
-        <label class="form-label" for="taskDesc">Description</label>
-        <textarea id="taskDesc" name="description" class="form-input" style="height: 100px; padding: 0.65rem 1rem;">{{ task.description }}</textarea>
-      </div>
-
-      <div class="settings-form-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:1.25rem; margin-bottom: 1.25rem;">
-        <div>
-          <label class="form-label" for="taskPriority">Priority</label>
-          <select id="taskPriority" name="priority" class="filter-select" style="width: 100%;">
-            <option value="low" {% if task.priority == 'low' %}selected{% endif %}>Low</option>
-            <option value="medium" {% if task.priority == 'medium' %}selected{% endif %}>Medium</option>
-            <option value="high" {% if task.priority == 'high' %}selected{% endif %}>High</option>
-            <option value="urgent" {% if task.priority == 'urgent' %}selected{% endif %}>Urgent</option>
-          </select>
+      <!-- Group 1: Task Information -->
+      <div class="form-section-block">
+        <div class="form-section-header">
+          <div class="form-section-title-group">
+            <span class="form-section-step">1</span>
+            <h4 class="form-section-title">Task Information</h4>
+          </div>
+          <span class="form-section-badge">Core Details</span>
         </div>
 
-        <div>
-          <label class="form-label" for="taskStatus">Status</label>
-          <select id="taskStatus" name="status" class="filter-select" style="width: 100%;">
-            <option value="pending" {% if task.status == 'pending' %}selected{% endif %}>To Do</option>
-            <option value="in_progress" {% if task.status == 'in_progress' %}selected{% endif %}>In Progress</option>
-            <option value="in_review" {% if task.status == 'in_review' %}selected{% endif %}>In Review</option>
-            <option value="completed" {% if task.status == 'completed' %}selected{% endif %}>Completed</option>
-          </select>
+        <div class="form-group">
+          <div class="form-label-row">
+            <label class="form-label" for="taskTitle">Task Title <span class="label-required">*</span></label>
+            <span class="label-optional">Max 200 chars</span>
+          </div>
+          <div class="form-control-wrap">
+            <i data-lucide="check-square" class="form-control-icon"></i>
+            <input type="text" id="taskTitle" name="title" class="form-input has-icon" value="{{ task.title }}" maxlength="200" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="form-label-row">
+            <label class="form-label" for="taskDesc">Task Description</label>
+            <span class="label-optional">Optional</span>
+          </div>
+          <textarea id="taskDesc" name="description" class="form-input form-textarea">{{ task.description }}</textarea>
         </div>
       </div>
 
-      <div class="settings-form-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:1.25rem; margin-bottom: 1.25rem;">
-        <div>
-          <label class="form-label" for="taskStartDate">Start Date</label>
-          <input type="date" id="taskStartDate" name="start_date" class="form-input" value="{{ task.start_date|date:'Y-m-d' }}">
+      <!-- Group 2: Assignment -->
+      <div class="form-section-block">
+        <div class="form-section-header">
+          <div class="form-section-title-group">
+            <span class="form-section-step">2</span>
+            <h4 class="form-section-title">Assignment</h4>
+          </div>
+          <span class="form-section-badge">Project Members Only</span>
         </div>
 
-        <div>
-          <label class="form-label" for="taskDeadline">Deadline</label>
-          <input type="date" id="taskDeadline" name="deadline" class="form-input" value="{{ task.deadline|date:'Y-m-d' }}">
+        <div class="form-group">
+          <div class="form-label-row">
+            <label class="form-label" for="taskAssignee">Assign To <span class="label-required">*</span></label>
+          </div>
+          <div class="form-control-wrap">
+            <i data-lucide="user-check" class="form-control-icon"></i>
+            <select id="taskAssignee" name="assigned_to" class="form-select filter-select has-icon" required>
+              {% for member in form.fields.assigned_to.queryset %}
+              <option value="{{ member.id }}" {% if task.assigned_to_id == member.id %}selected{% endif %}>
+                {{ member.get_full_name|default:member.username }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <span class="field-hint">
+            <i data-lucide="users" style="width: 13px; height: 13px;"></i>
+            <span>Only active members of {{ project.name }} are eligible for assignment.</span>
+          </span>
         </div>
       </div>
 
-      <div class="form-group" style="margin-bottom: 1.75rem;">
-        <label class="form-label" for="taskAssignee">Assign To (Project Members Only) <span class="label-required">*</span></label>
-        <select id="taskAssignee" name="assigned_to" class="filter-select" style="width: 100%;" required>
-          {% for member in form.fields.assigned_to.queryset %}
-          <option value="{{ member.id }}" {% if task.assigned_to_id == member.id %}selected{% endif %}>
-            {{ member.get_full_name|default:member.username }}
-          </option>
-          {% endfor %}
-        </select>
+      <!-- Group 3: Task Configuration -->
+      <div class="form-section-block">
+        <div class="form-section-header">
+          <div class="form-section-title-group">
+            <span class="form-section-step">3</span>
+            <h4 class="form-section-title">Task Configuration</h4>
+          </div>
+          <span class="form-section-badge">Priority &amp; Schedule</span>
+        </div>
+
+        <div class="settings-form-grid">
+          <div>
+            <div class="form-label-row">
+              <label class="form-label" for="taskPriority">Priority</label>
+            </div>
+            <select id="taskPriority" name="priority" class="form-select filter-select">
+              <option value="low" {% if task.priority == 'low' %}selected{% endif %}>Low</option>
+              <option value="medium" {% if task.priority == 'medium' %}selected{% endif %}>Medium</option>
+              <option value="high" {% if task.priority == 'high' %}selected{% endif %}>High</option>
+              <option value="urgent" {% if task.priority == 'urgent' %}selected{% endif %}>Urgent</option>
+            </select>
+          </div>
+
+          <div>
+            <div class="form-label-row">
+              <label class="form-label" for="taskStatus">Status</label>
+            </div>
+            <select id="taskStatus" name="status" class="form-select filter-select">
+              <option value="pending" {% if task.status == 'pending' %}selected{% endif %}>To Do</option>
+              <option value="in_progress" {% if task.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+              <option value="in_review" {% if task.status == 'in_review' %}selected{% endif %}>In Review</option>
+              <option value="completed" {% if task.status == 'completed' %}selected{% endif %}>Completed</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="settings-form-grid">
+          <div>
+            <div class="form-label-row">
+              <label class="form-label" for="taskStartDate">Start Date</label>
+            </div>
+            <div class="form-control-wrap">
+              <i data-lucide="calendar" class="form-control-icon"></i>
+              <input type="date" id="taskStartDate" name="start_date" class="form-input has-icon" value="{{ task.start_date|date:'Y-m-d' }}">
+            </div>
+          </div>
+
+          <div>
+            <div class="form-label-row">
+              <label class="form-label" for="taskDeadline">Deadline</label>
+            </div>
+            <div class="form-control-wrap">
+              <i data-lucide="calendar-clock" class="form-control-icon"></i>
+              <input type="date" id="taskDeadline" name="deadline" class="form-input has-icon" value="{{ task.deadline|date:'Y-m-d' }}">
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div style="display:flex; justify-content:flex-end; gap:0.75rem;">
+      <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border-light);">
         <a href="{% url 'task_detail' task.id %}" class="btn btn-outline">Cancel</a>
         <button type="submit" class="btn btn-primary">
           <i data-lucide="check" class="btn-icon"></i>

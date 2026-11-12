@@ -359,42 +359,72 @@
 <div class="modal-backdrop-wrap" id="modalCreateProject" role="dialog" aria-modal="true" aria-labelledby="modalCreateProjectTitle">
   <div class="modal-dialog-box">
     <div class="modal-dialog-header">
-      <h3 class="modal-dialog-title" id="modalCreateProjectTitle">Create New Project</h3>
-      <button class="modal-close-trigger" aria-label="Close modal">
-        <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+      <div class="modal-header-brand">
+        <div class="modal-header-icon" aria-hidden="true">
+          <i data-lucide="folder-plus" style="width: 20px; height: 20px;"></i>
+        </div>
+        <div class="modal-header-text">
+          <h3 class="modal-dialog-title" id="modalCreateProjectTitle">Create New Project</h3>
+          <p class="modal-dialog-subtitle">Set up a dedicated workspace to organize tasks, milestones, and team members.</p>
+        </div>
+      </div>
+      <button type="button" class="modal-close-trigger" aria-label="Close modal">
+        <i data-lucide="x" style="width: 18px; height: 18px;"></i>
       </button>
     </div>
 
     <!-- Django Form Submission Point -->
-    <form method="post" action="{% url 'my_projects' %}">
+    <form method="post" action="{% url 'my_projects' %}" class="kf-validated-form">
       {% csrf_token %}
       <input type="hidden" name="action" value="create_project">
 
-      <div class="form-group">
-        <label class="form-label" for="newProjectName">Project Name <span class="label-required">*</span></label>
-        <div class="form-control-wrap">
-          <input type="text" id="newProjectName" name="name" class="form-input" placeholder="e.g. Mobile App Redesign" required>
+      <div class="modal-dialog-body">
+        <div class="form-group">
+          <div class="form-label-row">
+            <label class="form-label" for="newProjectName">Project Name <span class="label-required">*</span></label>
+            <span class="label-optional">Max 150 chars</span>
+          </div>
+          <div class="form-control-wrap">
+            <i data-lucide="briefcase" class="form-control-icon"></i>
+            <input type="text" id="newProjectName" name="name" class="form-input has-icon" placeholder="e.g. Mobile App Redesign" maxlength="150" required>
+          </div>
+          <div class="field-error-msg" role="alert">
+            <i data-lucide="alert-circle" style="width: 14px; height: 14px;"></i>
+            <span>Project name is required.</span>
+          </div>
         </div>
-      </div>
 
-      <div class="form-group">
-        <label class="form-label" for="newProjectDesc">Description</label>
-        <textarea id="newProjectDesc" name="description" class="form-input" style="height: 90px; padding: 0.65rem 1rem;" placeholder="Brief summary of project objectives..."></textarea>
-      </div>
+        <div class="form-group">
+          <div class="form-label-row">
+            <label class="form-label" for="newProjectStatus">Initial Project Status</label>
+          </div>
+          <div class="form-control-wrap">
+            <i data-lucide="activity" class="form-control-icon"></i>
+            <select id="newProjectStatus" name="status" class="form-select filter-select has-icon">
+              <option value="planning">Planning — Defining scope &amp; requirements</option>
+              <option value="in_progress" selected>In Progress — Active execution</option>
+              <option value="on_hold">On Hold — Paused or awaiting review</option>
+            </select>
+          </div>
+        </div>
 
-      <div class="form-group">
-        <label class="form-label" for="newProjectStatus">Initial Status</label>
-        <select id="newProjectStatus" name="status" class="filter-select" style="width: 100%;">
-          <option value="planning">Planning</option>
-          <option value="in_progress" selected>In Progress</option>
-          <option value="on_hold">On Hold</option>
-        </select>
+        <div class="form-group">
+          <div class="form-label-row">
+            <label class="form-label" for="newProjectDesc">Project Description</label>
+            <span class="label-optional">Optional</span>
+          </div>
+          <textarea id="newProjectDesc" name="description" class="form-input form-textarea" placeholder="Brief summary of project objectives, deliverables, and key outcomes..."></textarea>
+          <span class="field-hint">
+            <i data-lucide="shield-check" style="width: 13px; height: 13px;"></i>
+            <span>You will automatically be assigned as the Project Leader.</span>
+          </span>
+        </div>
       </div>
 
       <div class="modal-form-actions">
         <button type="button" class="btn btn-outline modal-close-trigger">Cancel</button>
-        <button type="submit" class="btn btn-primary">
-          <i data-lucide="check" class="btn-icon"></i>
+        <button type="submit" class="btn btn-primary" data-submitting-text="Creating Project...">
+          <i data-lucide="plus" class="btn-icon"></i>
           <span>Create Project</span>
         </button>
       </div>
@@ -406,40 +436,66 @@
 <div class="modal-backdrop-wrap" id="modalManageProject" role="dialog" aria-modal="true" aria-labelledby="modalManageProjectTitle">
   <div class="modal-dialog-box">
     <div class="modal-dialog-header">
-      <h3 class="modal-dialog-title" id="modalManageProjectTitle">Manage Project</h3>
-      <button class="modal-close-trigger" aria-label="Close modal">
-        <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+      <div class="modal-header-brand">
+        <div class="modal-header-icon" aria-hidden="true">
+          <i data-lucide="settings" style="width: 20px; height: 20px;"></i>
+        </div>
+        <div class="modal-header-text">
+          <h3 class="modal-dialog-title" id="modalManageProjectTitle">Manage Project</h3>
+          <p class="modal-dialog-subtitle">Update workspace title, status, or project summary.</p>
+        </div>
+      </div>
+      <button type="button" class="modal-close-trigger" aria-label="Close modal">
+        <i data-lucide="x" style="width: 18px; height: 18px;"></i>
       </button>
     </div>
 
-    <form method="post" action="{% url 'my_projects' %}">
+    <form method="post" action="{% url 'my_projects' %}" class="kf-validated-form">
       {% csrf_token %}
       <input type="hidden" name="action" value="update_project">
       <input type="hidden" name="project_id" id="manageProjectId" value="">
 
-      <div class="form-group">
-        <label class="form-label" for="editProjectName">Project Name <span class="label-required">*</span></label>
-        <input type="text" id="editProjectName" name="name" class="form-input" value="KaryaFlow Platform Hardening" required>
-      </div>
+      <div class="modal-dialog-body">
+        <div class="form-group">
+          <div class="form-label-row">
+            <label class="form-label" for="editProjectName">Project Name <span class="label-required">*</span></label>
+          </div>
+          <div class="form-control-wrap">
+            <i data-lucide="briefcase" class="form-control-icon"></i>
+            <input type="text" id="editProjectName" name="name" class="form-input has-icon" value="KaryaFlow Platform Hardening" maxlength="150" required>
+          </div>
+        </div>
 
-      <div class="form-group">
-        <label class="form-label" for="editProjectDescription">Description</label>
-        <textarea id="editProjectDescription" name="description" class="form-input" style="height: 80px; padding: 0.65rem 1rem;"></textarea>
-      </div>
+        <div class="form-group">
+          <div class="form-label-row">
+            <label class="form-label" for="editProjectStatus">Project Status</label>
+          </div>
+          <div class="form-control-wrap">
+            <i data-lucide="activity" class="form-control-icon"></i>
+            <select id="editProjectStatus" name="status" class="form-select filter-select has-icon">
+              <option value="in_progress">In Progress</option>
+              <option value="planning">Planning</option>
+              <option value="completed">Completed</option>
+              <option value="on_hold">On Hold</option>
+            </select>
+          </div>
+        </div>
 
-      <div class="form-group">
-        <label class="form-label" for="editProjectStatus">Status</label>
-        <select id="editProjectStatus" name="status" class="filter-select" style="width: 100%;">
-          <option value="in_progress">In Progress</option>
-          <option value="planning">Planning</option>
-          <option value="completed">Completed</option>
-          <option value="on_hold">On Hold</option>
-        </select>
+        <div class="form-group">
+          <div class="form-label-row">
+            <label class="form-label" for="editProjectDescription">Description</label>
+            <span class="label-optional">Optional</span>
+          </div>
+          <textarea id="editProjectDescription" name="description" class="form-input form-textarea"></textarea>
+        </div>
       </div>
 
       <div class="modal-form-actions">
         <button type="button" class="btn btn-outline modal-close-trigger">Cancel</button>
-        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <button type="submit" class="btn btn-primary" data-submitting-text="Saving...">
+          <i data-lucide="check" class="btn-icon"></i>
+          <span>Save Changes</span>
+        </button>
       </div>
     </form>
   </div>
@@ -449,35 +505,74 @@
 <div class="modal-backdrop-wrap" id="modalManageMembers" role="dialog" aria-modal="true" aria-labelledby="modalManageMembersTitle">
   <div class="modal-dialog-box">
     <div class="modal-dialog-header">
-      <h3 class="modal-dialog-title" id="modalManageMembersTitle">Invite &amp; Manage Members</h3>
-      <button class="modal-close-trigger" aria-label="Close modal">
-        <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+      <div class="modal-header-brand">
+        <div class="modal-header-icon" aria-hidden="true">
+          <i data-lucide="user-plus" style="width: 20px; height: 20px;"></i>
+        </div>
+        <div class="modal-header-text">
+          <h3 class="modal-dialog-title" id="modalManageMembersTitle">Invite Member to Project</h3>
+          <p class="modal-dialog-subtitle">Send an invitation request for a teammate to join your project.</p>
+        </div>
+      </div>
+      <button type="button" class="modal-close-trigger" aria-label="Close modal">
+        <i data-lucide="x" style="width: 18px; height: 18px;"></i>
       </button>
     </div>
 
-    <form method="post" action="{% url 'my_projects' %}">
+    <form method="post" action="{% url 'my_projects' %}" class="kf-validated-form">
       {% csrf_token %}
       <input type="hidden" name="action" value="invite_member">
       <input type="hidden" name="project_id" id="inviteProjectId" value="">
-      
-      <div class="form-group">
-        <label class="form-label" for="memberEmail">User Email or Username <span class="label-required">*</span></label>
-        <div class="form-control-wrap">
-          <input type="text" id="memberEmail" name="identifier" class="form-input" placeholder="colleague@karyaflow.io" required>
-        </div>
-      </div>
 
-      <div class="form-group">
-        <label class="form-label" for="memberRoleSelect">Assigned Role</label>
-        <select id="memberRoleSelect" name="role" class="filter-select" style="width: 100%;">
-          <option value="member" selected>Member (Can view tasks &amp; update assigned status)</option>
-          <option value="leader">Leader (Can manage project &amp; members)</option>
-        </select>
+      <div class="modal-dialog-body">
+        <div class="invitation-workflow-callout">
+          <div class="workflow-callout-title">
+            <i data-lucide="mail-check" style="width: 15px; height: 15px; color: var(--accent-primary);"></i>
+            <span>How KaryaFlow Invitations Work</span>
+          </div>
+          <p class="workflow-callout-desc">
+            Inviting a user sends a <strong>pending invitation request</strong>. They will only be added to the project after they review and accept your invitation from their dashboard or invitations page.
+          </p>
+          <div class="workflow-steps-mini">
+            <span class="workflow-step-pill">1. Leader Sends Invite</span>
+            <span class="workflow-step-arrow">&rarr;</span>
+            <span class="workflow-step-pill">2. Pending Review</span>
+            <span class="workflow-step-arrow">&rarr;</span>
+            <span class="workflow-step-pill">3. Invitee Accepts</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="form-label-row">
+            <label class="form-label" for="memberEmail">User Email or Username <span class="label-required">*</span></label>
+          </div>
+          <div class="form-control-wrap">
+            <i data-lucide="at-sign" class="form-control-icon"></i>
+            <input type="text" id="memberEmail" name="identifier" class="form-input has-icon" placeholder="colleague@karyaflow.io or username" required>
+          </div>
+          <span class="field-hint">
+            <i data-lucide="info" style="width: 13px; height: 13px;"></i>
+            <span>Enter the registered email address or exact username of the person you want to invite.</span>
+          </span>
+        </div>
+
+        <div class="form-group">
+          <div class="form-label-row">
+            <label class="form-label" for="memberRoleSelect">Project Role</label>
+          </div>
+          <div class="form-control-wrap">
+            <i data-lucide="shield" class="form-control-icon"></i>
+            <select id="memberRoleSelect" name="role" class="form-select filter-select has-icon">
+              <option value="member" selected>Member — View project tasks &amp; update assigned work</option>
+              <option value="leader">Leader — Full project, task &amp; team management</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       <div class="modal-form-actions">
         <button type="button" class="btn btn-outline modal-close-trigger">Cancel</button>
-        <button type="submit" class="btn btn-primary">
+        <button type="submit" class="btn btn-primary" data-submitting-text="Sending Invitation...">
           <i data-lucide="send" class="btn-icon"></i>
           <span>Send Invitation</span>
         </button>

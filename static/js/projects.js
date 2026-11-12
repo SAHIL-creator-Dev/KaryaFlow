@@ -97,17 +97,97 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 2. Modal Controller Helper
+  // 2. Priority Selector Pills Sync Helper
+  function syncPriorityPillsForSelect(selectEl) {
+    if (!selectEl || !selectEl.id) return;
+    const grid = document.querySelector(`.priority-selector-grid[data-target-select="${selectEl.id}"]`);
+    if (!grid) return;
+    const pills = grid.querySelectorAll('.priority-option-pill');
+    pills.forEach(pill => {
+      const val = pill.getAttribute('data-priority-value');
+      pill.classList.toggle('is-active', val === selectEl.value);
+    });
+  }
+
+  document.querySelectorAll('.priority-selector-grid[data-target-select]').forEach(grid => {
+    const targetId = grid.getAttribute('data-target-select');
+    const selectEl = document.getElementById(targetId);
+    if (!selectEl) return;
+
+    grid.querySelectorAll('.priority-option-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        const val = pill.getAttribute('data-priority-value');
+        if (val) {
+          selectEl.value = val;
+          syncPriorityPillsForSelect(selectEl);
+        }
+      });
+    });
+
+    selectEl.addEventListener('change', () => {
+      syncPriorityPillsForSelect(selectEl);
+    });
+  });
+
+  // 3. Task Date Range Validation & Min Constraint Sync
+  document.querySelectorAll('.kf-task-form').forEach(form => {
+    const startInput = form.querySelector('input[name="start_date"]');
+    const deadlineInput = form.querySelector('input[name="deadline"]');
+    const errorMsg = form.querySelector('.kf-date-error-msg');
+
+    function validateDates() {
+      if (!startInput || !deadlineInput) return true;
+      if (startInput.value) {
+        deadlineInput.min = startInput.value;
+      } else {
+        deadlineInput.removeAttribute('min');
+      }
+      const isInvalid = Boolean(startInput.value && deadlineInput.value && deadlineInput.value < startInput.value);
+      deadlineInput.classList.toggle('is-invalid', isInvalid);
+      if (errorMsg) {
+        errorMsg.classList.toggle('is-visible', isInvalid);
+      }
+      return !isInvalid;
+    }
+
+    startInput?.addEventListener('change', validateDates);
+    deadlineInput?.addEventListener('change', validateDates);
+
+    form.addEventListener('submit', (e) => {
+      if (!validateDates()) {
+        e.preventDefault();
+        deadlineInput?.focus();
+      }
+    });
+  });
+
+  // 4. Form Submission Loading State
+  document.querySelectorAll('.kf-validated-form').forEach(form => {
+    form.addEventListener('submit', (e) => {
+      if (e.defaultPrevented || !form.checkValidity()) return;
+      const submitBtn = form.querySelector('button[type="submit"]');
+      if (submitBtn && !submitBtn.classList.contains('is-submitting')) {
+        submitBtn.classList.add('is-submitting');
+        const submittingText = submitBtn.getAttribute('data-submitting-text');
+        const labelSpan = submitBtn.querySelector('span');
+        if (submittingText && labelSpan) {
+          labelSpan.textContent = submittingText;
+        }
+      }
+    });
+  });
+
+  // 5. Modal Controller Helper
   function setupModal(openTriggerSelector, modalId, closeTriggerSelector) {
     const triggers = document.querySelectorAll(openTriggerSelector);
     const modal = document.getElementById(modalId);
     if (!modal) return;
-    const closeBtn = modal.querySelector(closeTriggerSelector || '.modal-close-trigger');
+    const closeBtns = modal.querySelectorAll(closeTriggerSelector || '.modal-close-trigger');
 
     function openModal() {
       modal.classList.add('is-visible');
       document.body.style.overflow = 'hidden';
-      const firstInput = modal.querySelector('input, select, textarea');
+      const firstInput = modal.querySelector('input:not([type="hidden"]), select, textarea');
       firstInput?.focus();
     }
 
@@ -156,7 +236,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (idInput) idInput.value = taskId || '';
         if (titleInput) titleInput.value = taskTitle || '';
         if (descInput) descInput.value = taskDesc || '';
-        if (priorityInput && taskPriority) priorityInput.value = taskPriority;
+        if (priorityInput && taskPriority) {
+          priorityInput.value = taskPriority;
+          syncPriorityPillsForSelect(priorityInput);
+        }
         if (statusInput && taskStatus) statusInput.value = taskStatus;
         if (startInput) startInput.value = taskStartDate || '';
         if (deadlineInput) deadlineInput.value = taskDeadline || '';
@@ -165,7 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
       openModal();
     }));
 
-    closeBtn?.addEventListener('click', closeModal);
+    closeBtns.forEach(btn => btn.addEventListener('click', closeModal));
 
     modal.addEventListener('click', (e) => {
       if (e.target === modal) closeModal();

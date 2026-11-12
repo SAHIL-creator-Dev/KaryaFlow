@@ -110,7 +110,9 @@
       <div class="user-profile-menu">
         <a href="{% url 'profile' %}" class="user-info-row" style="text-decoration: none; color: inherit;" title="Manage your account">
           <div class="user-avatar-pill">
-            {% if user.is_authenticated and user.first_name %}
+            {% if user.is_authenticated and user.profile.avatar_url %}
+              <img src="{{ user.profile.avatar_url }}" alt="{{ user.get_full_name|default:user.username }}" class="user-avatar-img">
+            {% elif user.is_authenticated and user.first_name %}
               {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}
             {% elif user.is_authenticated and user.username %}
               {{ user.username|slice:":2"|upper }}

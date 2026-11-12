@@ -241,7 +241,7 @@ class UserProfileUpdateForm(forms.ModelForm):
 
 class UserProfileAvatarForm(forms.ModelForm):
     """
-    Form for uploading profile avatar image.
+    Form for uploading profile avatar image and updating optional user bio.
     """
     avatar = forms.ImageField(
         required=False,
@@ -251,10 +251,26 @@ class UserProfileAvatarForm(forms.ModelForm):
             'style': 'display: none;',
         })
     )
+    bio = forms.CharField(
+        required=False,
+        max_length=500,
+        label="Bio",
+        widget=forms.Textarea(attrs={
+            'class': 'form-input form-textarea',
+            'id': 'profileBio',
+            'rows': 3,
+            'placeholder': 'Share a short bio, your role, or areas of responsibility...',
+        })
+    )
 
     class Meta:
         model = UserProfile
-        fields = ['avatar']
+        fields = ['avatar', 'bio']
+
+    def clean_bio(self):
+        if 'bio' not in self.data:
+            return self.instance.bio if self.instance else ''
+        return self.cleaned_data.get('bio', '').strip()
 
 
 class StyledPasswordChangeForm(PasswordChangeForm):

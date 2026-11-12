@@ -1,8 +1,11 @@
+from datetime import timedelta
+
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
-from projects.models import Project, ProjectMembership
+from projects.models import Project, ProjectInvitation, ProjectMembership
 from tasks.models import Task
 
 
@@ -90,3 +93,122 @@ class DashboardViewTests(TestCase):
         self.assertContains(response, 'No projects yet')
         self.assertContains(response, 'All caught up!')
         self.assertNotContains(response, 'KaryaFlow Platform Hardening')
+
+    def test_dashboard_detailed_stats_invitations_team_and_analytics(self):
+        today = timezone.localdate()
+        leader_project = self.create_project(
+            'Active Alpha',
+            self.user,
+            ProjectMembership.Role.LEADER,
+        )
+        completed_project = Project.objects.create(
+            name='Finished Beta',
+            creator=self.other_user,
+            status=Project.Status.COMPLETED,
+        )
+        ProjectMembership.objects.create(
+            user=self.other_user,
+            project=completed_project,
+            role=ProjectMembership.Role.LEADER,
+        )
+        ProjectMembership.objects.create(
+            user=self.user,
+            project=completed_project,
+            role=ProjectMembership.Role.MEMBER,
+        )
+        ProjectMembership.objects.create(
+            user=self.other_user,
+            project=leader_project,
+            role=ProjectMembership.Role.MEMBER,
+        )
+
+        # Create tasks across statuses and deadlines
+        Task.objects.create(
+            project=leader_project,
+            assigned_to=self.user,
+            title='Overdue task',
+            status=Task.Status.TODO,
+            priority=Task.Priority.HIGH,
+            deadline=today - timedelta(days=2),
+        )
+        Task.objects.create(
+            project=leader_project,
+            assigned_to=self.user,
+            title='Review task',
+            status=Task.Status.IN_REVIEW,
+            priority=Task.Priority.URGENT,
+            deadline=today + timedelta(days=3),
+        )
+        Task.objects.create(
+            project=completed_project,
+            assigned_to=self.user,
+            title='Done task',
+            status=Task.Status.COMPLETED,
+            priority=Task.Priority.LOW,
+        )
+
+        # Incoming invitation from another project
+        external_project = self.create_project(
+            'External Gamma',
+            self.other_user,
+            ProjectMembership.Role.LEADER,
+        )
+        incoming_inv = ProjectInvitation.objects.create(
+            project=external_project,
+            invited_by=self.other_user,
+            invited_user=self.user,
+            role=ProjectMembership.Role.MEMBER,
+            status=ProjectInvitation.Status.PENDING,
+        )
+
+        # Outgoing invitation sent from user's leader_project
+        invitee = User.objects.create_user(username='invitee', password='StrongPassword123!')
+        outgoing_inv = ProjectInvitation.objects.create(
+            project=leader_project,
+            invited_by=self.user,
+            invited_user=invitee,
+            role=ProjectMembership.Role.MEMBER,
+            status=ProjectInvitation.Status.PENDING,
+        )
+
+        response = self.client.get(self.dashboard_url)
+        self.assertEqual(response.status_code, 200)
+
+        detailed = response.context['detailed_stats']
+        self.assertEqual(detailed['total_projects'], 2)
+        self.assertEqual(detailed['active_projects'], 1)
+        self.assertEqual(detailed['completed_projects'], 1)
+        self.assertEqual(detailed['total_tasks'], 3)
+        self.assertEqual(detailed['pending_tasks'], 1)
+        self.assertEqual(detailed['in_progress_tasks'], 0)
+        self.assertEqual(detailed['in_review_tasks'], 1)
+        self.assertEqual(detailed['completed_tasks'], 1)
+        self.assertEqual(detailed['overdue_tasks'], 1)
+
+        analytics = response.context['analytics']
+        self.assertEqual(analytics['workspace_total_tasks'], 3)
+        self.assertEqual(analytics['workspace_completed_tasks'], 1)
+        self.assertEqual(analytics['workspace_remaining_tasks'], 2)
+        self.assertEqual(analytics['workspace_overdue_tasks'], 1)
+
+        self.assertEqual(
+            [inv.pk for inv in response.context['incoming_invitations']],
+            [incoming_inv.pk],
+        )
+        self.assertEqual(
+            [inv.pk for inv in response.context['outgoing_invitations']],
+            [outgoing_inv.pk],
+        )
+        self.assertEqual(len(response.context['team_members']), 1)
+        self.assertEqual(response.context['team_members'][0]['name'], 'other')
+
+        # Test dashboard task filtering by status and priority
+        filtered_resp = self.client.get(
+            self.dashboard_url,
+            {'status': Task.Status.IN_REVIEW, 'priority': Task.Priority.URGENT},
+        )
+        self.assertEqual(filtered_resp.status_code, 200)
+        self.assertEqual(
+            [t.title for t in filtered_resp.context['tasks']],
+            ['Review task'],
+        )

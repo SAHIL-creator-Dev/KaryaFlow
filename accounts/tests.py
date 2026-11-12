@@ -248,3 +248,61 @@ class AuthenticationTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.user.refresh_from_db()
         self.assertTrue(self.user.check_password('ComplexPassword123!'))
+
+    def test_profile_statistics_and_bio_update(self):
+        from projects.models import Project, ProjectMembership
+        from tasks.models import Task
+
+        self.client.force_login(self.user)
+
+        # Create 1 project led by self.user and 1 project where self.user is a member
+        p_led = Project.objects.create(name='Led Project', creator=self.user)
+        ProjectMembership.objects.create(
+            user=self.user, project=p_led, role=ProjectMembership.Role.LEADER
+        )
+
+        other_leader = User.objects.create_user(
+            username='leader2', email='leader2@karyaflow.io', password='ComplexPassword123!'
+        )
+        p_member = Project.objects.create(name='Member Project', creator=other_leader)
+        ProjectMembership.objects.create(
+            user=other_leader, project=p_member, role=ProjectMembership.Role.LEADER
+        )
+        ProjectMembership.objects.create(
+            user=self.user, project=p_member, role=ProjectMembership.Role.MEMBER
+        )
+
+        Task.objects.create(
+            title='Task 1',
+            project=p_led,
+            assigned_to=self.user,
+            creator=self.user,
+            status=Task.Status.COMPLETED,
+        )
+        Task.objects.create(
+            title='Task 2',
+            project=p_member,
+            assigned_to=self.user,
+            creator=other_leader,
+            status=Task.Status.IN_PROGRESS,
+        )
+
+        # Update profile including bio
+        post_resp = self.client.post(self.profile_url, {
+            'action': 'update_profile',
+            'first_name': 'Sahil',
+            'last_name': 'Verma',
+            'email': 'existing@karyaflow.io',
+            'bio': 'Lead platform engineer focusing on KaryaFlow.',
+        })
+        self.assertRedirects(post_resp, self.profile_url)
+        self.user.profile.refresh_from_db()
+        self.assertEqual(self.user.profile.bio, 'Lead platform engineer focusing on KaryaFlow.')
+
+        resp = self.client.get(self.profile_url)
+        self.assertEqual(resp.status_code, 200)
+        stats = resp.context['stats']
+        self.assertEqual(stats['total_projects'], 2)
+        self.assertEqual(stats['projects_led'], 1)
+        self.assertEqual(stats['assigned_tasks'], 2)
+        self.assertEqual(stats['completed_tasks'], 1)

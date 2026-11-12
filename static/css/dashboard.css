@@ -1213,7 +1213,537 @@
 }
 
 /* --------------------------------------------------------------------------
-   9. Mobile Drawer Overlay & Responsive Breakpoints
+   9. Enhanced Dashboard Redesign Components (9-Card KPIs, Invitations, Analytics)
+   -------------------------------------------------------------------------- */
+.user-avatar-img,
+.team-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.stats-overview-grid-9 {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.15rem;
+}
+
+.section-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.section-counter-badge.highlight {
+  background-color: var(--bg-accent-soft);
+  color: var(--accent-deep);
+  border: 1px solid var(--border-accent);
+}
+
+.project-deadline-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.project-deadline-meta.is-overdue {
+  color: #DC2626;
+}
+
+.project-card-kpi-strip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.1rem;
+}
+
+.project-kpi-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-light);
+  padding: 0.28rem 0.6rem;
+  border-radius: var(--radius-sm);
+}
+
+.project-kpi-pill strong {
+  color: var(--text-main);
+  font-weight: 700;
+}
+
+.project-kpi-pill.is-overdue {
+  background: #FEF2F2;
+  border-color: #FECACA;
+  color: #DC2626;
+}
+
+/* Task Search Input & Title Line in My Tasks Panel */
+.dashboard-task-search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 180px;
+}
+
+.dashboard-task-search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 14px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.dashboard-task-search-input {
+  width: 100%;
+  padding: 0.4rem 0.75rem 0.4rem 1.95rem;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  color: var(--text-main);
+  background: #FFFFFF;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.dashboard-task-search-input:focus {
+  border-color: var(--accent-primary);
+}
+
+.task-title-line {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.task-deadline-overdue-text {
+  color: #DC2626;
+  font-weight: 600;
+}
+
+.dashboard-right-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+/* Invitations Panel */
+.invitations-subsection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.invitations-subsection.outgoing-subsection {
+  margin-top: 1.25rem;
+  padding-top: 1.15rem;
+  border-top: 1px dashed var(--border-color);
+}
+
+.subsection-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.subsection-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.subsection-count {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-light);
+  padding: 0.1rem 0.45rem;
+  border-radius: var(--radius-full);
+}
+
+.dashboard-invitations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.dashboard-invitation-card {
+  padding: 0.9rem 1rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transition: all var(--transition-fast);
+}
+
+.dashboard-invitation-card:hover {
+  background: #FFFFFF;
+  border-color: var(--border-accent);
+  box-shadow: var(--shadow-sm);
+}
+
+.invitation-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.invitation-project-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.invitation-project-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.invitation-meta-line {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.invitation-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-project-action.danger-hover:hover {
+  color: #B91C1C;
+  border-color: #FCA5A5;
+  background-color: #FEF2F2;
+}
+
+.dashboard-invitation-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+}
+
+.outgoing-invite-left {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  overflow: hidden;
+}
+
+.team-avatar.small {
+  width: 30px;
+  height: 30px;
+  font-size: 0.72rem;
+}
+
+.outgoing-invite-meta {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.outgoing-invite-user {
+  font-size: 0.825rem;
+  font-weight: 700;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.outgoing-invite-sub {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.outgoing-invite-right {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.compact-empty-note {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 0.9rem;
+  background: var(--bg-primary);
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.team-chip-role {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* Project Analytics Section */
+.analytics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap: 1.75rem;
+  align-items: stretch;
+}
+
+.analytics-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.analytics-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.35rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.analytics-card-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.analytics-card-subtitle {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-top: 0.15rem;
+}
+
+.analytics-rate-badge {
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-full);
+  background: var(--status-success-bg);
+  color: var(--status-success);
+  white-space: nowrap;
+}
+
+.analytics-rate-badge.secondary {
+  background: var(--bg-accent-soft);
+  color: var(--accent-deep);
+}
+
+.analytics-distribution-layout {
+  display: flex;
+  align-items: center;
+  gap: 1.65rem;
+}
+
+.analytics-donut-wrap {
+  position: relative;
+  width: 148px;
+  height: 148px;
+  flex-shrink: 0;
+}
+
+.analytics-donut-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.analytics-donut-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.donut-center-value {
+  font-family: var(--font-heading);
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--text-main);
+  line-height: 1.1;
+}
+
+.donut-center-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.analytics-legend-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.analytics-stacked-bar {
+  width: 100%;
+  height: 10px;
+  background: var(--border-light);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  display: flex;
+}
+
+.stacked-segment {
+  height: 100%;
+}
+
+.stacked-segment.pending,
+.legend-dot.pending { background-color: #D97706; }
+.stacked-segment.in-progress,
+.legend-dot.in-progress { background-color: #C8754D; }
+.stacked-segment.in-review,
+.legend-dot.in-review { background-color: #4F46E5; }
+.stacked-segment.completed,
+.legend-dot.completed { background-color: #4F8A68; }
+
+.analytics-legend-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.55rem 1rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.78rem;
+}
+
+.legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legend-name {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.legend-val {
+  margin-left: auto;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.completed-vs-remaining-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+}
+
+.cvr-metric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.cvr-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.cvr-number {
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin-top: 0.1rem;
+}
+
+.cvr-number.completed { color: var(--status-success); }
+.cvr-number.remaining { color: var(--accent-deep); }
+.cvr-number.overdue { color: #DC2626; }
+
+.cvr-divider {
+  width: 1px;
+  height: 28px;
+  background: var(--border-color);
+}
+
+.workload-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.workload-breakdown-chips {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.55rem;
+}
+
+.workload-chip {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.12rem 0.5rem;
+  border-radius: var(--radius-full);
+  background: #FFFFFF;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
+.workload-chip.in-progress {
+  background: var(--status-warning-bg);
+  color: var(--status-warning);
+  border-color: transparent;
+}
+
+.workload-chip.in-review {
+  background: #EEF2FF;
+  color: #4F46E5;
+  border-color: transparent;
+}
+
+.workload-chip.overdue {
+  background: #FEF2F2;
+  color: #DC2626;
+  border-color: #FECACA;
+}
+
+/* --------------------------------------------------------------------------
+   10. Mobile Drawer Overlay & Responsive Breakpoints
    -------------------------------------------------------------------------- */
 .sidebar-overlay {
   display: none;
@@ -1232,13 +1762,15 @@
 }
 
 @media (max-width: 1200px) {
-  .dashboard-split-columns {
+  .dashboard-split-columns,
+  .analytics-grid {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 1024px) {
-  .stats-overview-grid {
+  .stats-overview-grid,
+  .stats-overview-grid-9 {
     grid-template-columns: repeat(2, 1fr);
   }
 }
@@ -1275,10 +1807,20 @@
   .dashboard-topbar {
     padding: 1rem 1.15rem;
   }
+
+  .analytics-distribution-layout {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .analytics-donut-wrap {
+    margin: 0 auto;
+  }
 }
 
 @media (max-width: 640px) {
-  .stats-overview-grid {
+  .stats-overview-grid,
+  .stats-overview-grid-9 {
     grid-template-columns: 1fr;
   }
 
@@ -1301,5 +1843,9 @@
     justify-content: space-between;
     padding-top: 0.5rem;
     border-top: 1px dashed var(--border-light);
+  }
+
+  .analytics-legend-grid {
+    grid-template-columns: 1fr;
   }
 }

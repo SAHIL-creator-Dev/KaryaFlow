@@ -562,6 +562,8 @@
       </button>
       {% endif %}
     </div>
+    {% endif %}
+
     <!-- Invitations Section (Visible to Leader) -->
     {% if is_leader and invitations %}
     <div class="project-invitations-subpanel" style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px dashed var(--border-color);">
@@ -609,83 +611,183 @@
       </div>
     </div>
     {% endif %}
-    {% endif %}
   </aside>
 
 </div>
 
 <!-- ======================== MODAL: CREATE TASK (Leader Only) ======================== -->
 <div class="modal-backdrop-wrap" id="modalCreateTask" data-modal-anchor="create-task" role="dialog" aria-modal="true" aria-labelledby="modalCreateTaskTitle">
-  <div class="modal-dialog-box">
+  <div class="modal-dialog-box modal-dialog-lg">
     <div class="modal-dialog-header">
-      <h3 class="modal-dialog-title" id="modalCreateTaskTitle">Create New Task</h3>
-      <button class="modal-close-trigger" aria-label="Close modal">
-        <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+      <div class="modal-header-brand">
+        <div class="modal-header-icon" aria-hidden="true">
+          <i data-lucide="list-plus" style="width: 20px; height: 20px;"></i>
+        </div>
+        <div class="modal-header-text">
+          <h3 class="modal-dialog-title" id="modalCreateTaskTitle">Create New Task</h3>
+          <p class="modal-dialog-subtitle">Define task deliverables, assign a project member, and set target dates.</p>
+        </div>
+      </div>
+      <button type="button" class="modal-close-trigger" aria-label="Close modal">
+        <i data-lucide="x" style="width: 18px; height: 18px;"></i>
       </button>
     </div>
 
-    <form method="post" action="{% url 'project_detail' project.id %}">
+    <form method="post" action="{% url 'project_detail' project.id %}" class="kf-task-form kf-validated-form">
       {% csrf_token %}
       <input type="hidden" name="action" value="create_task">
 
-      <div class="form-group">
-        <label class="form-label" for="taskTitleInput">Task Title <span class="label-required">*</span></label>
-        <input type="text" id="taskTitleInput" name="title" class="form-input" placeholder="e.g. Audit responsive breakpoints" maxlength="200" required>
-      </div>
+      <div class="modal-dialog-body">
+        <!-- Group 1: Task Information -->
+        <div class="form-section-block">
+          <div class="form-section-header">
+            <div class="form-section-title-group">
+              <span class="form-section-step">1</span>
+              <h4 class="form-section-title">Task Information</h4>
+            </div>
+            <span class="form-section-badge">Core Details</span>
+          </div>
 
-      <div class="form-group">
-        <label class="form-label" for="taskDescInput">Task Description</label>
-        <textarea id="taskDescInput" name="description" class="form-input" style="height: 80px; padding: 0.65rem 1rem;" placeholder="Detailed requirements and acceptance criteria..."></textarea>
-      </div>
+          <div class="form-group">
+            <div class="form-label-row">
+              <label class="form-label" for="taskTitleInput">Task Title <span class="label-required">*</span></label>
+              <span class="label-optional">Max 200 chars</span>
+            </div>
+            <div class="form-control-wrap">
+              <i data-lucide="check-square" class="form-control-icon"></i>
+              <input type="text" id="taskTitleInput" name="title" class="form-input has-icon" placeholder="e.g. Audit responsive breakpoints across dashboard views" maxlength="200" required>
+            </div>
+          </div>
 
-      <div class="settings-form-grid" style="margin-bottom: 1.25rem;">
-        <div>
-          <label class="form-label" for="taskPrioritySelect">Priority</label>
-          <select id="taskPrioritySelect" name="priority" class="filter-select" style="width: 100%;">
-            <option value="low">Low</option>
-            <option value="medium" selected>Medium</option>
-            <option value="high">High</option>
-            <option value="urgent">Urgent</option>
-          </select>
+          <div class="form-group">
+            <div class="form-label-row">
+              <label class="form-label" for="taskDescInput">Task Description</label>
+              <span class="label-optional">Optional</span>
+            </div>
+            <textarea id="taskDescInput" name="description" class="form-input form-textarea" placeholder="Provide clear context, acceptance criteria, and any helpful implementation notes..."></textarea>
+          </div>
         </div>
 
-        <div>
-          <label class="form-label" for="taskStartDateInput">Start Date</label>
-          <input type="date" id="taskStartDateInput" name="start_date" class="form-input" style="padding-left: 1rem;">
-        </div>
-      </div>
+        <!-- Group 2: Assignment -->
+        <div class="form-section-block">
+          <div class="form-section-header">
+            <div class="form-section-title-group">
+              <span class="form-section-step">2</span>
+              <h4 class="form-section-title">Assignment</h4>
+            </div>
+            <span class="form-section-badge">{{ members|length }} Eligible Member{{ members|length|pluralize }}</span>
+          </div>
 
-      <div class="settings-form-grid" style="margin-bottom: 1.25rem;">
-        <div>
-          <label class="form-label" for="taskDeadlineInput">Deadline</label>
-          <input type="date" id="taskDeadlineInput" name="deadline" class="form-input" style="padding-left: 1rem;">
+          <div class="form-group">
+            <div class="form-label-row">
+              <label class="form-label" for="taskAssigneeSelect">Assign To <span class="label-required">*</span></label>
+            </div>
+            <div class="form-control-wrap">
+              <i data-lucide="user-check" class="form-control-icon"></i>
+              <select id="taskAssigneeSelect" name="assigned_to" class="form-select filter-select has-icon" required>
+                {% for member in members %}
+                <option value="{{ member.user_id }}" {% if member.user_id == request.user.id %}selected{% endif %}>
+                  {{ member.name }}{% if member.user_id == request.user.id %} (You){% endif %}{% if member.role %} — {{ member.role|title }}{% endif %}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+            <span class="field-hint">
+              <i data-lucide="users" style="width: 13px; height: 13px;"></i>
+              <span>Only active members of {{ project.name }} can be assigned tasks.</span>
+            </span>
+          </div>
         </div>
 
-        <div>
-          <label class="form-label" for="taskAssigneeSelect">Assign To</label>
-          <select id="taskAssigneeSelect" name="assigned_to" class="filter-select" style="width: 100%;" required>
-            {% for member in members %}
-            <option value="{{ member.user_id }}" {% if member.user_id == request.user.id %}selected{% endif %}>
-              {{ member.name }}{% if member.user_id == request.user.id %} (You){% endif %}
-            </option>
-            {% endfor %}
-          </select>
-        </div>
-      </div>
+        <!-- Group 3: Task Configuration -->
+        <div class="form-section-block">
+          <div class="form-section-header">
+            <div class="form-section-title-group">
+              <span class="form-section-step">3</span>
+              <h4 class="form-section-title">Task Configuration</h4>
+            </div>
+            <span class="form-section-badge">Priority &amp; Schedule</span>
+          </div>
 
-      <div class="form-group" style="margin-bottom: 1.25rem;">
-        <label class="form-label" for="taskStatusSelect">Status</label>
-        <select id="taskStatusSelect" name="status" class="filter-select" style="width: 100%;">
-          <option value="pending" selected>To Do</option>
-          <option value="in_progress">In Progress</option>
-          <option value="in_review">In Review</option>
-          <option value="completed">Completed</option>
-        </select>
+          <div class="form-group">
+            <div class="form-label-row">
+              <label class="form-label" for="taskPrioritySelect">Priority Level <span class="label-required">*</span></label>
+            </div>
+            <div class="priority-selector-grid" data-target-select="taskPrioritySelect" role="radiogroup" aria-label="Task Priority">
+              <button type="button" class="priority-option-pill" data-priority-value="low">
+                <span class="priority-dot"></span>
+                <span>Low</span>
+              </button>
+              <button type="button" class="priority-option-pill is-active" data-priority-value="medium">
+                <span class="priority-dot"></span>
+                <span>Medium</span>
+              </button>
+              <button type="button" class="priority-option-pill" data-priority-value="high">
+                <span class="priority-dot"></span>
+                <span>High</span>
+              </button>
+              <button type="button" class="priority-option-pill" data-priority-value="urgent">
+                <span class="priority-dot"></span>
+                <span>Urgent</span>
+              </button>
+            </div>
+            <select id="taskPrioritySelect" name="priority" class="form-select filter-select">
+              <option value="low">Low — Routine or non-blocking item</option>
+              <option value="medium" selected>Medium — Standard project deliverable</option>
+              <option value="high">High — Important milestone dependency</option>
+              <option value="urgent">Urgent — Critical blocker requiring immediate focus</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <div class="form-label-row">
+              <label class="form-label" for="taskStatusSelect">Initial Status</label>
+            </div>
+            <div class="form-control-wrap">
+              <i data-lucide="circle-dot" class="form-control-icon"></i>
+              <select id="taskStatusSelect" name="status" class="form-select filter-select has-icon">
+                <option value="pending" selected>To Do</option>
+                <option value="in_progress">In Progress</option>
+                <option value="in_review">In Review</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="settings-form-grid">
+            <div>
+              <div class="form-label-row">
+                <label class="form-label" for="taskStartDateInput">Start Date</label>
+                <span class="label-optional">Optional</span>
+              </div>
+              <div class="form-control-wrap">
+                <i data-lucide="calendar" class="form-control-icon"></i>
+                <input type="date" id="taskStartDateInput" name="start_date" class="form-input has-icon">
+              </div>
+            </div>
+
+            <div>
+              <div class="form-label-row">
+                <label class="form-label" for="taskDeadlineInput">Deadline</label>
+                <span class="label-optional">Optional</span>
+              </div>
+              <div class="form-control-wrap">
+                <i data-lucide="calendar-clock" class="form-control-icon"></i>
+                <input type="date" id="taskDeadlineInput" name="deadline" class="form-input has-icon">
+              </div>
+            </div>
+          </div>
+
+          <div class="field-error-msg kf-date-error-msg" role="alert">
+            <i data-lucide="alert-triangle" style="width: 14px; height: 14px;"></i>
+            <span>Deadline cannot be earlier than the start date.</span>
+          </div>
+        </div>
       </div>
 
       <div class="modal-form-actions">
         <button type="button" class="btn btn-outline modal-close-trigger">Cancel</button>
-        <button type="submit" class="btn btn-primary">
+        <button type="submit" class="btn btn-primary" data-submitting-text="Creating Task...">
           <i data-lucide="check" class="btn-icon"></i>
           <span>Create Task</span>
         </button>
@@ -696,77 +798,172 @@
 
 <!-- ======================== MODAL: EDIT TASK (Leader Only) ======================== -->
 <div class="modal-backdrop-wrap" id="modalEditTask" role="dialog" aria-modal="true" aria-labelledby="modalEditTaskTitle">
-  <div class="modal-dialog-box">
+  <div class="modal-dialog-box modal-dialog-lg">
     <div class="modal-dialog-header">
-      <h3 class="modal-dialog-title" id="modalEditTaskTitle">Edit Task</h3>
-      <button class="modal-close-trigger" aria-label="Close modal">
-        <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+      <div class="modal-header-brand">
+        <div class="modal-header-icon" aria-hidden="true">
+          <i data-lucide="edit-3" style="width: 20px; height: 20px;"></i>
+        </div>
+        <div class="modal-header-text">
+          <h3 class="modal-dialog-title" id="modalEditTaskTitle">Edit Task</h3>
+          <p class="modal-dialog-subtitle">Update task scope, assignee, priority, or target schedule.</p>
+        </div>
+      </div>
+      <button type="button" class="modal-close-trigger" aria-label="Close modal">
+        <i data-lucide="x" style="width: 18px; height: 18px;"></i>
       </button>
     </div>
 
-    <form method="post" action="{% url 'project_detail' project.id %}">
+    <form method="post" action="{% url 'project_detail' project.id %}" class="kf-task-form kf-validated-form">
       {% csrf_token %}
       <input type="hidden" name="action" value="edit_task">
       <input type="hidden" name="task_id" id="editTaskId" value="">
 
-      <div class="form-group">
-        <label class="form-label" for="editTaskTitleInput">Task Title <span class="label-required">*</span></label>
-        <input type="text" id="editTaskTitleInput" name="title" class="form-input" required maxlength="200">
-      </div>
+      <div class="modal-dialog-body">
+        <!-- Group 1: Task Information -->
+        <div class="form-section-block">
+          <div class="form-section-header">
+            <div class="form-section-title-group">
+              <span class="form-section-step">1</span>
+              <h4 class="form-section-title">Task Information</h4>
+            </div>
+            <span class="form-section-badge">Core Details</span>
+          </div>
 
-      <div class="form-group">
-        <label class="form-label" for="editTaskDescInput">Task Description</label>
-        <textarea id="editTaskDescInput" name="description" class="form-input" style="height: 80px; padding: 0.65rem 1rem;"></textarea>
-      </div>
+          <div class="form-group">
+            <div class="form-label-row">
+              <label class="form-label" for="editTaskTitleInput">Task Title <span class="label-required">*</span></label>
+              <span class="label-optional">Max 200 chars</span>
+            </div>
+            <div class="form-control-wrap">
+              <i data-lucide="check-square" class="form-control-icon"></i>
+              <input type="text" id="editTaskTitleInput" name="title" class="form-input has-icon" required maxlength="200">
+            </div>
+          </div>
 
-      <div class="settings-form-grid" style="margin-bottom: 1.25rem;">
-        <div>
-          <label class="form-label" for="editTaskPrioritySelect">Priority</label>
-          <select id="editTaskPrioritySelect" name="priority" class="filter-select" style="width: 100%;">
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
-            <option value="urgent">Urgent</option>
-          </select>
+          <div class="form-group">
+            <div class="form-label-row">
+              <label class="form-label" for="editTaskDescInput">Task Description</label>
+              <span class="label-optional">Optional</span>
+            </div>
+            <textarea id="editTaskDescInput" name="description" class="form-input form-textarea"></textarea>
+          </div>
         </div>
 
-        <div>
-          <label class="form-label" for="editTaskStartDateInput">Start Date</label>
-          <input type="date" id="editTaskStartDateInput" name="start_date" class="form-input" style="padding-left: 1rem;">
-        </div>
-      </div>
+        <!-- Group 2: Assignment -->
+        <div class="form-section-block">
+          <div class="form-section-header">
+            <div class="form-section-title-group">
+              <span class="form-section-step">2</span>
+              <h4 class="form-section-title">Assignment</h4>
+            </div>
+            <span class="form-section-badge">Project Members</span>
+          </div>
 
-      <div class="settings-form-grid" style="margin-bottom: 1.25rem;">
-        <div>
-          <label class="form-label" for="editTaskDeadlineInput">Deadline</label>
-          <input type="date" id="editTaskDeadlineInput" name="deadline" class="form-input" style="padding-left: 1rem;">
+          <div class="form-group">
+            <div class="form-label-row">
+              <label class="form-label" for="editTaskAssigneeSelect">Assign To <span class="label-required">*</span></label>
+            </div>
+            <div class="form-control-wrap">
+              <i data-lucide="user-check" class="form-control-icon"></i>
+              <select id="editTaskAssigneeSelect" name="assigned_to" class="form-select filter-select has-icon" required>
+                {% for member in members %}
+                <option value="{{ member.user_id }}">
+                  {{ member.name }}{% if member.user_id == request.user.id %} (You){% endif %}{% if member.role %} — {{ member.role|title }}{% endif %}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
         </div>
 
-        <div>
-          <label class="form-label" for="editTaskAssigneeSelect">Assign To</label>
-          <select id="editTaskAssigneeSelect" name="assigned_to" class="filter-select" style="width: 100%;" required>
-            {% for member in members %}
-            <option value="{{ member.user_id }}">
-              {{ member.name }}{% if member.user_id == request.user.id %} (You){% endif %}
-            </option>
-            {% endfor %}
-          </select>
-        </div>
-      </div>
+        <!-- Group 3: Task Configuration -->
+        <div class="form-section-block">
+          <div class="form-section-header">
+            <div class="form-section-title-group">
+              <span class="form-section-step">3</span>
+              <h4 class="form-section-title">Task Configuration</h4>
+            </div>
+            <span class="form-section-badge">Priority &amp; Schedule</span>
+          </div>
 
-      <div class="form-group" style="margin-bottom: 1.25rem;">
-        <label class="form-label" for="editTaskStatusSelect">Status</label>
-        <select id="editTaskStatusSelect" name="status" class="filter-select" style="width: 100%;">
-          <option value="pending">To Do</option>
-          <option value="in_progress">In Progress</option>
-          <option value="in_review">In Review</option>
-          <option value="completed">Completed</option>
-        </select>
+          <div class="form-group">
+            <div class="form-label-row">
+              <label class="form-label" for="editTaskPrioritySelect">Priority Level</label>
+            </div>
+            <div class="priority-selector-grid" data-target-select="editTaskPrioritySelect" role="radiogroup" aria-label="Edit Task Priority">
+              <button type="button" class="priority-option-pill" data-priority-value="low">
+                <span class="priority-dot"></span>
+                <span>Low</span>
+              </button>
+              <button type="button" class="priority-option-pill is-active" data-priority-value="medium">
+                <span class="priority-dot"></span>
+                <span>Medium</span>
+              </button>
+              <button type="button" class="priority-option-pill" data-priority-value="high">
+                <span class="priority-dot"></span>
+                <span>High</span>
+              </button>
+              <button type="button" class="priority-option-pill" data-priority-value="urgent">
+                <span class="priority-dot"></span>
+                <span>Urgent</span>
+              </button>
+            </div>
+            <select id="editTaskPrioritySelect" name="priority" class="form-select filter-select">
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+              <option value="urgent">Urgent</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <div class="form-label-row">
+              <label class="form-label" for="editTaskStatusSelect">Status</label>
+            </div>
+            <div class="form-control-wrap">
+              <i data-lucide="circle-dot" class="form-control-icon"></i>
+              <select id="editTaskStatusSelect" name="status" class="form-select filter-select has-icon">
+                <option value="pending">To Do</option>
+                <option value="in_progress">In Progress</option>
+                <option value="in_review">In Review</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="settings-form-grid">
+            <div>
+              <div class="form-label-row">
+                <label class="form-label" for="editTaskStartDateInput">Start Date</label>
+              </div>
+              <div class="form-control-wrap">
+                <i data-lucide="calendar" class="form-control-icon"></i>
+                <input type="date" id="editTaskStartDateInput" name="start_date" class="form-input has-icon">
+              </div>
+            </div>
+
+            <div>
+              <div class="form-label-row">
+                <label class="form-label" for="editTaskDeadlineInput">Deadline</label>
+              </div>
+              <div class="form-control-wrap">
+                <i data-lucide="calendar-clock" class="form-control-icon"></i>
+                <input type="date" id="editTaskDeadlineInput" name="deadline" class="form-input has-icon">
+              </div>
+            </div>
+          </div>
+
+          <div class="field-error-msg kf-date-error-msg" role="alert">
+            <i data-lucide="alert-triangle" style="width: 14px; height: 14px;"></i>
+            <span>Deadline cannot be earlier than the start date.</span>
+          </div>
+        </div>
       </div>
 
       <div class="modal-form-actions">
         <button type="button" class="btn btn-outline modal-close-trigger">Cancel</button>
-        <button type="submit" class="btn btn-primary">
+        <button type="submit" class="btn btn-primary" data-submitting-text="Saving Changes...">
           <i data-lucide="check" class="btn-icon"></i>
           <span>Save Changes</span>
         </button>
@@ -779,32 +976,94 @@
 <div class="modal-backdrop-wrap" id="modalManageMembers" role="dialog" aria-modal="true" aria-labelledby="modalManageMembersTitle2">
   <div class="modal-dialog-box">
     <div class="modal-dialog-header">
-      <h3 class="modal-dialog-title" id="modalManageMembersTitle2">Invite Member to Project</h3>
-      <button class="modal-close-trigger" aria-label="Close modal">
-        <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+      <div class="modal-header-brand">
+        <div class="modal-header-icon" aria-hidden="true">
+          <i data-lucide="user-plus" style="width: 20px; height: 20px;"></i>
+        </div>
+        <div class="modal-header-text">
+          <h3 class="modal-dialog-title" id="modalManageMembersTitle2">Invite Member to Project</h3>
+          <p class="modal-dialog-subtitle">Send an invitation to collaborate on <strong>{{ project.name }}</strong>.</p>
+        </div>
+      </div>
+      <button type="button" class="modal-close-trigger" aria-label="Close modal">
+        <i data-lucide="x" style="width: 18px; height: 18px;"></i>
       </button>
     </div>
 
-    <form method="post" action="{% url 'project_detail' project.id %}">
+    <form method="post" action="{% url 'project_detail' project.id %}" class="kf-validated-form">
       {% csrf_token %}
       <input type="hidden" name="action" value="invite_member">
 
-      <div class="form-group">
-        <label class="form-label" for="memberEmailInput">Email Address or Username <span class="label-required">*</span></label>
-        <input type="text" id="memberEmailInput" name="identifier" class="form-input" placeholder="colleague@karyaflow.io" required>
-      </div>
+      <div class="modal-dialog-body">
+        <div class="invitation-workflow-callout">
+          <div class="workflow-callout-title">
+            <i data-lucide="mail-check" style="width: 15px; height: 15px; color: var(--accent-primary);"></i>
+            <span>Invitation Request Workflow</span>
+          </div>
+          <p class="workflow-callout-desc">
+            Sending an invitation creates a <strong>pending request</strong>. The invited user can review and accept or decline the request from their KaryaFlow dashboard before joining the team.
+          </p>
+          <div class="workflow-steps-mini">
+            <span class="workflow-step-pill">1. Leader Sends Invite</span>
+            <span class="workflow-step-arrow">&rarr;</span>
+            <span class="workflow-step-pill">2. Pending Request</span>
+            <span class="workflow-step-arrow">&rarr;</span>
+            <span class="workflow-step-pill">3. Member Accepts</span>
+          </div>
+        </div>
 
-      <div class="form-group">
-        <label class="form-label" for="memberRoleSelectProject">Role</label>
-        <select id="memberRoleSelectProject" name="role" class="filter-select" style="width: 100%;">
-          <option value="member" selected>Member (Can view tasks &amp; update assigned status)</option>
-          <option value="leader">Leader (Can manage project &amp; members)</option>
-        </select>
+        <div class="form-group">
+          <div class="form-label-row">
+            <label class="form-label" for="memberEmailInput">Email Address or Username <span class="label-required">*</span></label>
+          </div>
+          <div class="form-control-wrap">
+            <i data-lucide="at-sign" class="form-control-icon"></i>
+            <input type="text" id="memberEmailInput" name="identifier" class="form-input has-icon" placeholder="colleague@karyaflow.io or username" required>
+          </div>
+          <span class="field-hint">
+            <i data-lucide="info" style="width: 13px; height: 13px;"></i>
+            <span>Enter a registered KaryaFlow email address or username.</span>
+          </span>
+        </div>
+
+        <div class="form-group">
+          <div class="form-label-row">
+            <label class="form-label" for="memberRoleSelectProject">Project Role</label>
+          </div>
+          <div class="form-control-wrap">
+            <i data-lucide="shield" class="form-control-icon"></i>
+            <select id="memberRoleSelectProject" name="role" class="form-select filter-select has-icon">
+              <option value="member" selected>Member — View tasks &amp; update assigned task status</option>
+              <option value="leader">Leader — Manage project settings, tasks &amp; members</option>
+            </select>
+          </div>
+        </div>
+
+        {% if invitations %}
+        <div class="modal-pending-invites-box">
+          <div class="modal-pending-header">
+            <span class="modal-pending-title">
+              <i data-lucide="clock" style="width: 13px; height: 13px; color: var(--accent-primary);"></i>
+              <span>Recent Project Invitations ({{ invitations|length }})</span>
+            </span>
+          </div>
+          <div class="modal-pending-list">
+            {% for inv in invitations %}
+            <div class="modal-pending-item">
+              <span class="modal-pending-user">{{ inv.invited_user_name }} &middot; {{ inv.get_role_display }}</span>
+              <span class="status-badge-tag {{ inv.status|lower }}" style="font-size: 0.66rem; padding: 0.12rem 0.45rem;">
+                {{ inv.get_status_display }}
+              </span>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
       </div>
 
       <div class="modal-form-actions">
         <button type="button" class="btn btn-outline modal-close-trigger">Cancel</button>
-        <button type="submit" class="btn btn-primary">
+        <button type="submit" class="btn btn-primary" data-submitting-text="Sending Invitation...">
           <i data-lucide="send" class="btn-icon"></i>
           <span>Send Invitation</span>
         </button>
@@ -817,39 +1076,65 @@
 <div class="modal-backdrop-wrap" id="modalManageProject" role="dialog" aria-modal="true" aria-labelledby="modalManageProjectTitle2">
   <div class="modal-dialog-box">
     <div class="modal-dialog-header">
-      <h3 class="modal-dialog-title" id="modalManageProjectTitle2">Project Settings</h3>
-      <button class="modal-close-trigger" aria-label="Close modal">
-        <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+      <div class="modal-header-brand">
+        <div class="modal-header-icon" aria-hidden="true">
+          <i data-lucide="settings" style="width: 20px; height: 20px;"></i>
+        </div>
+        <div class="modal-header-text">
+          <h3 class="modal-dialog-title" id="modalManageProjectTitle2">Project Settings</h3>
+          <p class="modal-dialog-subtitle">Update workspace name, status, and description.</p>
+        </div>
+      </div>
+      <button type="button" class="modal-close-trigger" aria-label="Close modal">
+        <i data-lucide="x" style="width: 18px; height: 18px;"></i>
       </button>
     </div>
 
-    <form method="post" action="{% url 'project_detail' project.id %}">
+    <form method="post" action="{% url 'project_detail' project.id %}" class="kf-validated-form">
       {% csrf_token %}
       <input type="hidden" name="action" value="update_project">
 
-      <div class="form-group">
-        <label class="form-label" for="projNameEdit">Project Name <span class="label-required">*</span></label>
-        <input type="text" id="projNameEdit" name="name" class="form-input" value="{{ project.name }}" required>
-      </div>
+      <div class="modal-dialog-body">
+        <div class="form-group">
+          <div class="form-label-row">
+            <label class="form-label" for="projNameEdit">Project Name <span class="label-required">*</span></label>
+          </div>
+          <div class="form-control-wrap">
+            <i data-lucide="briefcase" class="form-control-icon"></i>
+            <input type="text" id="projNameEdit" name="name" class="form-input has-icon" value="{{ project.name }}" maxlength="150" required>
+          </div>
+        </div>
 
-      <div class="form-group">
-        <label class="form-label" for="projDescEdit">Description</label>
-        <textarea id="projDescEdit" name="description" class="form-input" style="height: 80px; padding: 0.65rem 1rem;">{{ project.description }}</textarea>
-      </div>
+        <div class="form-group">
+          <div class="form-label-row">
+            <label class="form-label" for="projStatusEdit">Status</label>
+          </div>
+          <div class="form-control-wrap">
+            <i data-lucide="activity" class="form-control-icon"></i>
+            <select id="projStatusEdit" name="status" class="form-select filter-select has-icon">
+              <option value="in_progress" {% if project.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+              <option value="planning" {% if project.status == 'planning' %}selected{% endif %}>Planning</option>
+              <option value="completed" {% if project.status == 'completed' %}selected{% endif %}>Completed</option>
+              <option value="on_hold" {% if project.status == 'on_hold' %}selected{% endif %}>On Hold</option>
+            </select>
+          </div>
+        </div>
 
-      <div class="form-group">
-        <label class="form-label" for="projStatusEdit">Status</label>
-        <select id="projStatusEdit" name="status" class="filter-select" style="width: 100%;">
-          <option value="in_progress" {% if project.status == 'in_progress' %}selected{% endif %}>In Progress</option>
-          <option value="planning" {% if project.status == 'planning' %}selected{% endif %}>Planning</option>
-          <option value="completed" {% if project.status == 'completed' %}selected{% endif %}>Completed</option>
-          <option value="on_hold" {% if project.status == 'on_hold' %}selected{% endif %}>On Hold</option>
-        </select>
+        <div class="form-group">
+          <div class="form-label-row">
+            <label class="form-label" for="projDescEdit">Description</label>
+            <span class="label-optional">Optional</span>
+          </div>
+          <textarea id="projDescEdit" name="description" class="form-input form-textarea">{{ project.description }}</textarea>
+        </div>
       </div>
 
       <div class="modal-form-actions">
         <button type="button" class="btn btn-outline modal-close-trigger">Cancel</button>
-        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <button type="submit" class="btn btn-primary" data-submitting-text="Saving...">
+          <i data-lucide="check" class="btn-icon"></i>
+          <span>Save Changes</span>
+        </button>
       </div>
     </form>
   </div>

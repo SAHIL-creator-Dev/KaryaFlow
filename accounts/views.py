@@ -2,7 +2,11 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
+from django.db.models import Count, Q
+from django.utils import timezone
 from django.views.decorators.http import require_http_methods
+from projects.models import ProjectInvitation, ProjectMembership
+from tasks.models import Task
 from .forms import (
     UserRegistrationForm,
     UserLoginForm,
@@ -90,10 +94,15 @@ def logout_view(request):
 def profile_view(request):
     """
     Allows authenticated users to view and update their profile details
-    (first name, last name, email, profile avatar) or change password.
+    (first name, last name, email, bio, profile avatar) or change password,
+    while displaying live workspace statistics.
     """
     user = request.user
     profile, _ = UserProfile.objects.get_or_create(user=user)
+
+    profile_form = UserProfileUpdateForm(instance=user)
+    avatar_form = UserProfileAvatarForm(instance=profile)
+    password_form = StyledPasswordChangeForm(user=user)
 
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -108,7 +117,6 @@ def profile_view(request):
                 messages.success(request, "Your profile has been successfully updated.")
                 return redirect('profile')
             else:
-                # Display errors
                 for form in (profile_form, avatar_form):
                     for field, errors in form.errors.items():
                         for error in errors:
@@ -127,10 +135,56 @@ def profile_view(request):
                     for error in errors:
                         messages.error(request, error)
 
-    # Initial form states for GET or post-error rendering
-    profile_form = UserProfileUpdateForm(instance=user)
-    avatar_form = UserProfileAvatarForm(instance=profile)
-    password_form = StyledPasswordChangeForm(user=user)
+    # Dynamic workspace statistics restricted to authorized project memberships & tasks
+    membership_counts = ProjectMembership.objects.filter(user=user).aggregate(
+        total_projects=Count('id'),
+        projects_led=Count('id', filter=Q(role=ProjectMembership.Role.LEADER)),
+    )
+    task_counts = Task.objects.filter(
+        assigned_to=user,
+        project__memberships__user=user,
+    ).aggregate(
+        assigned_tasks=Count('id', distinct=True),
+        completed_tasks=Count(
+            'id',
+            filter=Q(status=Task.Status.COMPLETED),
+            distinct=True,
+        ),
+        active_tasks=Count(
+            'id',
+            filter=~Q(status=Task.Status.COMPLETED),
+            distinct=True,
+        ),
+    )
+
+    total_projects = membership_counts['total_projects'] or 0
+    projects_led = membership_counts['projects_led'] or 0
+    assigned_tasks = task_counts['assigned_tasks'] or 0
+    completed_tasks = task_counts['completed_tasks'] or 0
+    active_tasks = task_counts['active_tasks'] or 0
+    completion_rate = round((completed_tasks / assigned_tasks) * 100) if assigned_tasks > 0 else 0
+
+    pending_invitations_count = ProjectInvitation.objects.filter(
+        invited_user=user,
+        status=ProjectInvitation.Status.PENDING,
+    ).count()
+
+    if projects_led > 0:
+        primary_role_label = 'Project Leader'
+    elif total_projects > 0:
+        primary_role_label = 'Project Member'
+    else:
+        primary_role_label = 'Workspace Member'
+
+    stats = {
+        'total_projects': total_projects,
+        'projects_led': projects_led,
+        'projects_member': max(total_projects - projects_led, 0),
+        'assigned_tasks': assigned_tasks,
+        'completed_tasks': completed_tasks,
+        'active_tasks': active_tasks,
+        'completion_rate': completion_rate,
+    }
 
     context = {
         'user': user,
@@ -138,6 +192,10 @@ def profile_view(request):
         'profile_form': profile_form,
         'avatar_form': avatar_form,
         'password_form': password_form,
+        'stats': stats,
+        'primary_role_label': primary_role_label,
+        'pending_invitations_count': pending_invitations_count,
+        'current_date': timezone.localdate(),
     }
     return render(request, 'accounts/profile.html', context)
 

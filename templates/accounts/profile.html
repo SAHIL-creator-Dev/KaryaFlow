@@ -9,228 +9,521 @@
 {% endblock %}
 
 {% block topbar_heading %}
-<h1 class="topbar-greeting">Profile &amp; Settings</h1>
-<p class="topbar-subtext">Manage your personal information, profile avatar, and account security.</p>
+<h1 class="topbar-greeting">Profile &amp; Account Workspace</h1>
+<p class="topbar-subtext">Manage your personal identity, workspace statistics, and account security.</p>
+{% endblock %}
+
+{% block topbar_actions %}
+<a href="#edit-profile-section" class="btn btn-primary btn-sm-topbar" id="topbarEditProfileBtn">
+  <i data-lucide="user-pen" class="btn-icon"></i>
+  <span>Edit Profile</span>
+</a>
 {% endblock %}
 
 {% block content %}
 <!-- Django Messages / Alert Banner -->
 {% if messages %}
-<div class="django-messages" style="margin-bottom: 1.5rem;">
+<div class="django-messages" style="margin-bottom: 1.5rem;" role="status" aria-live="polite">
   {% for message in messages %}
   <div class="alert-banner {{ message.tags }}">
+    {% if 'error' in message.tags %}
+    <i data-lucide="alert-circle" class="alert-icon"></i>
+    {% elif 'success' in message.tags %}
+    <i data-lucide="check-circle-2" class="alert-icon"></i>
+    {% else %}
     <i data-lucide="info" class="alert-icon"></i>
+    {% endif %}
     <span>{{ message }}</span>
   </div>
   {% endfor %}
 </div>
 {% endif %}
 
-<div class="profile-page-grid">
-  
-  <!-- ======================== LEFT COLUMN: PROFILE IDENTITY CARD ======================== -->
-  <aside class="profile-identity-card" aria-label="Profile Card">
-    <!-- Big Avatar with Edit overlay -->
+<!-- ======================== 1. PROFILE HEADER / IDENTITY BANNER ======================== -->
+<section class="profile-hero-card" aria-label="Profile Identity Header">
+  <div class="profile-hero-main">
+    <!-- Prominent Avatar with Initials Fallback & Quick Upload Trigger -->
     <div class="avatar-upload-wrapper">
-      <div class="profile-big-avatar" id="profileAvatarDisplay">
+      <div class="profile-big-avatar" id="profileAvatarDisplay" data-initial-avatar-url="{{ profile.avatar_url|default:'' }}">
         {% if profile.avatar_url %}
           <img src="{{ profile.avatar_url }}" alt="{{ user.get_full_name|default:user.username }}">
         {% elif user.first_name %}
-          {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}
+          {{ user.first_name|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}
         {% elif user.username %}
           {{ user.username|slice:":2"|upper }}
         {% else %}
-          SV
+          KF
         {% endif %}
       </div>
 
-      <!-- Avatar Picker Trigger -->
+      <!-- Quick Avatar Upload Form (Preserves existing backend endpoint & fields) -->
       <form id="avatarUploadForm" method="post" action="{% url 'profile' %}" enctype="multipart/form-data" style="display: inline;">
         {% csrf_token %}
         <input type="hidden" name="action" value="update_profile">
         <input type="hidden" name="first_name" value="{{ user.first_name }}">
         <input type="hidden" name="last_name" value="{{ user.last_name }}">
         <input type="hidden" name="email" value="{{ user.email }}">
-        
-        <button type="button" class="avatar-edit-trigger" title="Upload new photo" aria-label="Upload new photo">
+        <input type="hidden" name="bio" value="{{ profile.bio }}">
+
+        <button type="button" class="avatar-edit-trigger" title="Upload new profile photo" aria-label="Upload new profile photo">
           <i data-lucide="camera" style="width: 15px; height: 15px;"></i>
         </button>
 
-        <!-- File input triggered by avatar-edit-trigger -->
-        <input type="file" id="avatarFileInput" name="avatar" accept="image/*" style="display: none;" onchange="this.form.submit()">
+        <input type="file" id="avatarFileInput" name="avatar" accept=".jpg,.jpeg,.png,.webp,.gif,image/*" style="display: none;" onchange="this.form.submit()">
       </form>
     </div>
 
-    <h2 class="profile-identity-name">
-      {% if user.is_authenticated and user.get_full_name %}
-        {{ user.get_full_name }}
-      {% else %}
-        {{ user.username }}
-      {% endif %}
-    </h2>
+    <!-- User Identity Details -->
+    <div class="profile-hero-info">
+      <div class="profile-hero-title-row">
+        <h2 class="profile-identity-name">
+          {% if user.is_authenticated and user.get_full_name %}
+            {{ user.get_full_name }}
+          {% else %}
+            {{ user.username }}
+          {% endif %}
+        </h2>
+        <span class="profile-identity-username">@{{ user.username }}</span>
+        <span class="profile-role-pill">
+          <i data-lucide="award" style="width: 13px; height: 13px;"></i>
+          <span>{{ primary_role_label|default:"Workspace Member" }}</span>
+        </span>
+        <span class="profile-status-pill">
+          <span class="status-dot"></span>
+          <span>Active</span>
+        </span>
+      </div>
 
-    <span class="profile-identity-username">
-      @{{ user.username|default:"sahilverma" }}
-    </span>
-
-    <span class="profile-identity-email">
-      {{ user.email|default:"sahil@karyaflow.io" }}
-    </span>
-
-    <!-- Metadata breakdown -->
-    <div class="profile-meta-list-block">
-      <div class="meta-row-item">
-        <span class="meta-row-label">
+      <div class="profile-hero-contact-row">
+        <span class="profile-contact-item">
+          <i data-lucide="mail" style="width: 14px; height: 14px;"></i>
+          <span>{{ user.email|default:"No email configured" }}</span>
+        </span>
+        <span class="profile-contact-divider">&bull;</span>
+        <span class="profile-contact-item">
           <i data-lucide="calendar" style="width: 14px; height: 14px;"></i>
-          <span>Member Since</span>
+          <span>Joined {{ user.date_joined|date:"M d, Y" }}</span>
         </span>
-        <span class="meta-row-value">
-          {{ user.date_joined|date:"M d, Y"|default:"October 2026" }}
-        </span>
-      </div>
-
-      <div class="meta-row-item">
-        <span class="meta-row-label">
+        {% if user.last_login %}
+        <span class="profile-contact-divider">&bull;</span>
+        <span class="profile-contact-item">
           <i data-lucide="clock" style="width: 14px; height: 14px;"></i>
-          <span>Last Login</span>
+          <span>Last login {{ user.last_login|date:"M d, Y H:i" }}</span>
         </span>
-        <span class="meta-row-value">
-          {{ user.last_login|date:"M d, H:i"|default:"Today, 21:30" }}
-        </span>
+        {% endif %}
       </div>
 
-      <div class="meta-row-item">
-        <span class="meta-row-label">
-          <i data-lucide="shield-check" style="width: 14px; height: 14px;"></i>
-          <span>Account Status</span>
-        </span>
-        <span class="meta-row-value" style="color: var(--status-success);">Active</span>
+      {% if profile.bio %}
+      <p class="profile-hero-bio">{{ profile.bio }}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Header Quick Actions -->
+  <div class="profile-hero-actions">
+    <button type="button" class="btn btn-outline" id="btnTriggerAvatarUpload">
+      <i data-lucide="image-plus" class="btn-icon"></i>
+      <span>Change Photo</span>
+    </button>
+    <a href="#edit-profile-section" class="btn btn-primary" id="btnHeroEditProfile">
+      <i data-lucide="edit-3" class="btn-icon"></i>
+      <span>Edit Profile</span>
+    </a>
+  </div>
+</section>
+
+<!-- ======================== 2. PROFILE STATISTICS SECTION ======================== -->
+<section class="profile-stats-section" aria-label="Profile Workspace Statistics">
+  <div class="profile-stats-grid">
+    <!-- Card 1: Total Projects -->
+    <div class="profile-stat-card">
+      <div class="profile-stat-top">
+        <span class="profile-stat-label">Total Projects</span>
+        <div class="profile-stat-icon terracotta">
+          <i data-lucide="folder-kanban" style="width: 18px; height: 18px;"></i>
+        </div>
+      </div>
+      <div class="profile-stat-value">{{ stats.total_projects|default:0 }}</div>
+      <div class="profile-stat-footer">
+        <span class="profile-stat-meta">{{ stats.projects_member|default:0 }} as team member</span>
+        <a href="{% url 'my_projects' %}" class="profile-stat-link">View &rarr;</a>
       </div>
     </div>
-  </aside>
 
-  <!-- ======================== RIGHT COLUMN: SETTINGS PANELS ======================== -->
-  <div class="settings-panels-stack">
-    
-    <!-- 1. EDIT PROFILE FORM -->
-    <section class="settings-card" aria-labelledby="sectionEditProfileTitle">
+    <!-- Card 2: Projects Led -->
+    <div class="profile-stat-card">
+      <div class="profile-stat-top">
+        <span class="profile-stat-label">Projects Led</span>
+        <div class="profile-stat-icon amber">
+          <i data-lucide="crown" style="width: 18px; height: 18px;"></i>
+        </div>
+      </div>
+      <div class="profile-stat-value">{{ stats.projects_led|default:0 }}</div>
+      <div class="profile-stat-footer">
+        <span class="profile-stat-meta">Project Leader role</span>
+        <a href="{% url 'my_projects' %}" class="profile-stat-link">Manage &rarr;</a>
+      </div>
+    </div>
+
+    <!-- Card 3: Assigned Tasks -->
+    <div class="profile-stat-card">
+      <div class="profile-stat-top">
+        <span class="profile-stat-label">Assigned Tasks</span>
+        <div class="profile-stat-icon indigo">
+          <i data-lucide="clipboard-list" style="width: 18px; height: 18px;"></i>
+        </div>
+      </div>
+      <div class="profile-stat-value">{{ stats.assigned_tasks|default:0 }}</div>
+      <div class="profile-stat-footer">
+        <span class="profile-stat-meta">{{ stats.active_tasks|default:0 }} currently active</span>
+        <a href="{% url 'my_tasks' %}" class="profile-stat-link">Open &rarr;</a>
+      </div>
+    </div>
+
+    <!-- Card 4: Completed Tasks -->
+    <div class="profile-stat-card">
+      <div class="profile-stat-top">
+        <span class="profile-stat-label">Completed Tasks</span>
+        <div class="profile-stat-icon sage">
+          <i data-lucide="check-circle-2" style="width: 18px; height: 18px;"></i>
+        </div>
+      </div>
+      <div class="profile-stat-value">{{ stats.completed_tasks|default:0 }}</div>
+      <div class="profile-stat-footer">
+        <span class="profile-stat-meta">{{ stats.completion_rate|default:0 }}% completion rate</span>
+        <a href="{% url 'my_tasks' %}?status=completed" class="profile-stat-link">History &rarr;</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== 3. MAIN PROFILE WORKSPACE GRID ======================== -->
+<div class="profile-page-grid">
+
+  <!-- LEFT COLUMN: PERSONAL INFORMATION OVERVIEW & ACCOUNT METADATA -->
+  <aside class="profile-overview-column" aria-label="Personal Information Overview">
+    <section class="settings-card">
       <div class="settings-card-header">
         <div class="settings-heading-group">
-          <h3 class="settings-card-title" id="sectionEditProfileTitle">
-            <i data-lucide="user" style="width: 18px; height: 18px; color: var(--accent-primary);"></i>
-            <span>Edit Profile</span>
+          <h3 class="settings-card-title">
+            <i data-lucide="id-card" style="width: 18px; height: 18px; color: var(--accent-primary);"></i>
+            <span>Personal Information</span>
           </h3>
-          <p class="settings-card-desc">Update your personal information and public workspace identity.</p>
+          <p class="settings-card-desc">Your current directory details visible to project collaborators.</p>
         </div>
       </div>
 
-      <form method="post" action="{% url 'profile' %}" enctype="multipart/form-data">
+      <div class="personal-info-grid">
+        <div class="info-field-box">
+          <span class="info-field-label">Full Name</span>
+          <span class="info-field-value">{{ user.get_full_name|default:"Not set" }}</span>
+        </div>
+
+        <div class="info-field-box">
+          <span class="info-field-label">Username</span>
+          <span class="info-field-value mono">@{{ user.username }}</span>
+        </div>
+
+        <div class="info-field-box full-span">
+          <span class="info-field-label">Email Address</span>
+          <span class="info-field-value">{{ user.email|default:"Not set" }}</span>
+        </div>
+
+        <div class="info-field-box full-span">
+          <span class="info-field-label">Bio</span>
+          {% if profile.bio %}
+          <p class="info-field-bio">{{ profile.bio }}</p>
+          {% else %}
+          <p class="info-field-bio is-empty">No bio added yet. Add a short introduction in the Edit Profile form.</p>
+          {% endif %}
+        </div>
+
+        <div class="info-field-box full-span">
+          <span class="info-field-label">Profile Image</span>
+          <div class="info-avatar-status-row">
+            <div class="info-avatar-mini">
+              {% if profile.avatar_url %}
+              <img src="{{ profile.avatar_url }}" alt="{{ user.get_full_name|default:user.username }}">
+              {% elif user.first_name %}
+              {{ user.first_name|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}
+              {% else %}
+              {{ user.username|slice:":2"|upper }}
+              {% endif %}
+            </div>
+            <div class="info-avatar-text">
+              <span class="info-avatar-primary">
+                {% if profile.avatar_url %}Custom profile photo active{% else %}Using initials avatar fallback{% endif %}
+              </span>
+              <span class="info-avatar-sub">Supports JPG, PNG, WEBP, GIF (max 3MB)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-meta-list-block">
+        <div class="meta-row-item">
+          <span class="meta-row-label">
+            <i data-lucide="calendar" style="width: 14px; height: 14px;"></i>
+            <span>Member Since</span>
+          </span>
+          <span class="meta-row-value">{{ user.date_joined|date:"M d, Y" }}</span>
+        </div>
+
+        <div class="meta-row-item">
+          <span class="meta-row-label">
+            <i data-lucide="clock" style="width: 14px; height: 14px;"></i>
+            <span>Last Login</span>
+          </span>
+          <span class="meta-row-value">{{ user.last_login|date:"M d, Y H:i"|default:"Active Session" }}</span>
+        </div>
+
+        <div class="meta-row-item">
+          <span class="meta-row-label">
+            <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
+            <span>Profile Updated</span>
+          </span>
+          <span class="meta-row-value">{{ profile.updated_at|date:"M d, Y" }}</span>
+        </div>
+
+        <div class="meta-row-item">
+          <span class="meta-row-label">
+            <i data-lucide="shield-check" style="width: 14px; height: 14px;"></i>
+            <span>Account Status</span>
+          </span>
+          <span class="meta-row-value" style="color: var(--status-success);">Verified &amp; Active</span>
+        </div>
+      </div>
+    </section>
+  </aside>
+
+  <!-- RIGHT COLUMN: EDIT PROFILE & ACCOUNT SECURITY -->
+  <div class="settings-panels-stack">
+
+    <!-- 4. EDIT PROFILE FORM -->
+    <section class="settings-card" id="edit-profile-section" aria-labelledby="sectionEditProfileTitle">
+      <div class="settings-card-header">
+        <div class="settings-heading-group">
+          <h3 class="settings-card-title" id="sectionEditProfileTitle">
+            <i data-lucide="user-pen" style="width: 18px; height: 18px; color: var(--accent-primary);"></i>
+            <span>Edit Profile</span>
+          </h3>
+          <p class="settings-card-desc">Update your personal information, bio, and profile picture.</p>
+        </div>
+        <span class="settings-section-badge">Personal Details</span>
+      </div>
+
+      <form method="post" action="{% url 'profile' %}" enctype="multipart/form-data" id="editProfileForm" novalidate>
         {% csrf_token %}
         <input type="hidden" name="action" value="update_profile">
 
+        <!-- Profile Picture Upload & Live Preview Control -->
+        <div class="profile-photo-edit-bar">
+          <div class="photo-edit-left">
+            <div class="photo-edit-preview" id="editFormAvatarPreview">
+              {% if profile.avatar_url %}
+                <img src="{{ profile.avatar_url }}" alt="{{ user.get_full_name|default:user.username }}">
+              {% elif user.first_name %}
+                {{ user.first_name|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}
+              {% else %}
+                {{ user.username|slice:":2"|upper }}
+              {% endif %}
+            </div>
+            <div class="photo-edit-meta">
+              <span class="photo-edit-title">Profile Picture</span>
+              <span class="photo-edit-hint" id="avatarFileMeta">JPG, PNG, WEBP or GIF &bull; Maximum 3MB</span>
+            </div>
+          </div>
+          <div class="photo-edit-actions">
+            <label for="editProfileAvatarInput" class="btn btn-outline btn-sm-control" style="cursor: pointer;">
+              <i data-lucide="upload" class="btn-icon"></i>
+              <span>Select Photo</span>
+            </label>
+            <input
+              type="file"
+              id="editProfileAvatarInput"
+              name="avatar"
+              accept=".jpg,.jpeg,.png,.webp,.gif,image/*"
+              style="display: none;"
+            >
+          </div>
+        </div>
+        {% if avatar_form.avatar.errors %}
+        <div class="field-error-text" role="alert">
+          {% for err in avatar_form.avatar.errors %}{{ err }}{% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Name Row (Two-column on desktop, stacked on mobile) -->
         <div class="settings-form-grid">
           <!-- First Name -->
           <div class="form-group">
-            <label class="form-label" for="profileFirstName">First Name <span class="label-required">*</span></label>
+            <div class="form-label-row">
+              <label class="form-label" for="profileFirstName">First Name <span class="label-required">*</span></label>
+            </div>
             <div class="form-control-wrap">
-              <input 
-                type="text" 
-                id="profileFirstName" 
-                name="first_name" 
-                class="form-input" 
-                value="{{ user.first_name }}" 
+              <input
+                type="text"
+                id="profileFirstName"
+                name="first_name"
+                class="form-input"
+                value="{{ profile_form.first_name.value|default:user.first_name }}"
+                placeholder="Enter your first name"
+                maxlength="150"
                 required
               >
               <i data-lucide="user" class="form-control-icon"></i>
             </div>
+            {% if profile_form.first_name.errors %}
+            <span class="field-error-text">{% for err in profile_form.first_name.errors %}{{ err }}{% endfor %}</span>
+            {% endif %}
           </div>
 
           <!-- Last Name -->
           <div class="form-group">
-            <label class="form-label" for="profileLastName">Last Name</label>
+            <div class="form-label-row">
+              <label class="form-label" for="profileLastName">Last Name</label>
+              <span class="label-optional">Optional</span>
+            </div>
             <div class="form-control-wrap">
-              <input 
-                type="text" 
-                id="profileLastName" 
-                name="last_name" 
-                class="form-input" 
-                value="{{ user.last_name }}"
+              <input
+                type="text"
+                id="profileLastName"
+                name="last_name"
+                class="form-input"
+                value="{{ profile_form.last_name.value|default:user.last_name }}"
+                placeholder="Enter your last name"
+                maxlength="150"
               >
               <i data-lucide="user" class="form-control-icon"></i>
             </div>
+            {% if profile_form.last_name.errors %}
+            <span class="field-error-text">{% for err in profile_form.last_name.errors %}{{ err }}{% endfor %}</span>
+            {% endif %}
           </div>
         </div>
 
+        <!-- Username & Email Row -->
         <div class="settings-form-grid">
           <!-- Username (Read-only) -->
           <div class="form-group">
-            <label class="form-label" for="profileUsername">Username</label>
+            <div class="form-label-row">
+              <label class="form-label" for="profileUsername">Username</label>
+              <span class="label-optional">Read-only</span>
+            </div>
             <div class="form-control-wrap">
-              <input 
-                type="text" 
-                id="profileUsername" 
-                name="username" 
-                class="form-input" 
-                value="{{ user.username }}" 
+              <input
+                type="text"
+                id="profileUsername"
+                name="username"
+                class="form-input is-readonly"
+                value="{{ user.username }}"
                 readonly
-                style="background-color: var(--bg-hover); cursor: not-allowed;"
               >
               <i data-lucide="at-sign" class="form-control-icon"></i>
             </div>
+            <span class="field-helper-note">Your unique workspace handle cannot be changed.</span>
           </div>
 
           <!-- Email Address -->
           <div class="form-group">
-            <label class="form-label" for="profileEmail">Email Address <span class="label-required">*</span></label>
+            <div class="form-label-row">
+              <label class="form-label" for="profileEmail">Email Address <span class="label-required">*</span></label>
+            </div>
             <div class="form-control-wrap">
-              <input 
-                type="email" 
-                id="profileEmail" 
-                name="email" 
-                class="form-input" 
-                value="{{ user.email }}" 
+              <input
+                type="email"
+                id="profileEmail"
+                name="email"
+                class="form-input"
+                value="{{ profile_form.email.value|default:user.email }}"
+                placeholder="name@company.com"
                 required
               >
               <i data-lucide="mail" class="form-control-icon"></i>
             </div>
+            {% if profile_form.email.errors %}
+            <span class="field-error-text">{% for err in profile_form.email.errors %}{{ err }}{% endfor %}</span>
+            {% endif %}
           </div>
         </div>
 
+        <!-- Bio Field -->
+        <div class="form-group">
+          <div class="form-label-row">
+            <label class="form-label" for="profileBio">Bio</label>
+            <span class="label-optional" id="bioCharCounter">{{ profile.bio|length|default:0 }} / 500</span>
+          </div>
+          <textarea
+            id="profileBio"
+            name="bio"
+            class="form-input form-textarea"
+            maxlength="500"
+            rows="3"
+            placeholder="Share a short bio, your role, or areas of responsibility..."
+          >{{ avatar_form.bio.value|default:profile.bio }}</textarea>
+          {% if avatar_form.bio.errors %}
+          <span class="field-error-text">{% for err in avatar_form.bio.errors %}{{ err }}{% endfor %}</span>
+          {% endif %}
+        </div>
+
         <div class="form-actions-bar">
-          <button type="submit" class="btn btn-primary">
+          <button type="reset" class="btn btn-outline" id="btnCancelEditProfile">
+            <span>Cancel</span>
+          </button>
+          <button type="submit" class="btn btn-primary" data-submitting-text="Saving Changes...">
             <i data-lucide="check" class="btn-icon"></i>
-            <span>Save Profile</span>
+            <span>Save Changes</span>
           </button>
         </div>
       </form>
     </section>
 
-    <!-- 2. CHANGE PASSWORD SETTINGS (Standard Django Auth Integration) -->
-    <section class="settings-card" aria-labelledby="sectionChangePasswordTitle">
+    <!-- 5. ACCOUNT SECURITY SECTION (Standard Django Auth Password Change Integration) -->
+    <section class="settings-card" id="account-security-section" aria-labelledby="sectionChangePasswordTitle">
       <div class="settings-card-header">
         <div class="settings-heading-group">
           <h3 class="settings-card-title" id="sectionChangePasswordTitle">
-            <i data-lucide="lock" style="width: 18px; height: 18px; color: var(--accent-primary);"></i>
+            <i data-lucide="shield-lock" style="width: 18px; height: 18px; color: var(--accent-primary);"></i>
             <span>Account Security</span>
           </h3>
-          <p class="settings-card-desc">Keep your workspace protected with a strong, secure password.</p>
+          <p class="settings-card-desc">Update your password and keep your KaryaFlow account protected.</p>
+        </div>
+        <a href="#currentPasswordInput" class="settings-section-badge action-link" id="btnShortcutChangePassword">
+          <i data-lucide="key-round" style="width: 12px; height: 12px;"></i>
+          <span>Change Password</span>
+        </a>
+      </div>
+
+      <!-- Password Security Guidance Callout -->
+      <div class="security-guidance-callout">
+        <div class="security-guidance-icon">
+          <i data-lucide="shield-check" style="width: 18px; height: 18px;"></i>
+        </div>
+        <div class="security-guidance-body">
+          <h4 class="security-guidance-title">Password Security Guidelines</h4>
+          <p class="security-guidance-desc">
+            Use at least <strong>8 characters</strong> combining uppercase and lowercase letters, numbers, and symbols. Avoid reusing passwords or using common phrases. Your current session will remain signed in after updating.
+          </p>
         </div>
       </div>
 
-      <form method="post" action="{% url 'profile' %}">
+      <form method="post" action="{% url 'profile' %}" id="changePasswordForm">
         {% csrf_token %}
         <input type="hidden" name="action" value="change_password">
 
         <!-- Current Password -->
         <div class="form-group">
-          <label class="form-label" for="currentPasswordInput">Current Password <span class="label-required">*</span></label>
+          <div class="form-label-row">
+            <label class="form-label" for="currentPasswordInput">Current Password <span class="label-required">*</span></label>
+          </div>
           <div class="form-control-wrap">
-            <input 
-              type="password" 
-              id="currentPasswordInput" 
-              name="old_password" 
-              class="form-input" 
-              placeholder="Enter current password" 
+            <input
+              type="password"
+              id="currentPasswordInput"
+              name="old_password"
+              class="form-input"
+              placeholder="Enter your current password"
+              autocomplete="current-password"
               required
             >
             <i data-lucide="lock" class="form-control-icon"></i>
@@ -238,19 +531,26 @@
               <i data-lucide="eye" style="width: 16px; height: 16px;"></i>
             </button>
           </div>
+          {% if password_form.old_password.errors %}
+          <span class="field-error-text">{% for err in password_form.old_password.errors %}{{ err }}{% endfor %}</span>
+          {% endif %}
         </div>
 
         <div class="settings-form-grid">
           <!-- New Password -->
           <div class="form-group">
-            <label class="form-label" for="newPasswordInput">New Password <span class="label-required">*</span></label>
+            <div class="form-label-row">
+              <label class="form-label" for="newPasswordInput">New Password <span class="label-required">*</span></label>
+              <span class="label-optional">Min 8 chars</span>
+            </div>
             <div class="form-control-wrap">
-              <input 
-                type="password" 
-                id="newPasswordInput" 
-                name="new_password1" 
-                class="form-input" 
-                placeholder="At least 8 characters" 
+              <input
+                type="password"
+                id="newPasswordInput"
+                name="new_password1"
+                class="form-input"
+                placeholder="At least 8 characters"
+                autocomplete="new-password"
                 required
               >
               <i data-lucide="key" class="form-control-icon"></i>
@@ -258,18 +558,24 @@
                 <i data-lucide="eye" style="width: 16px; height: 16px;"></i>
               </button>
             </div>
+            {% if password_form.new_password1.errors %}
+            <span class="field-error-text">{% for err in password_form.new_password1.errors %}{{ err }}{% endfor %}</span>
+            {% endif %}
           </div>
 
           <!-- Confirm New Password -->
           <div class="form-group">
-            <label class="form-label" for="confirmPasswordInput">Confirm New Password <span class="label-required">*</span></label>
+            <div class="form-label-row">
+              <label class="form-label" for="confirmPasswordInput">Confirm New Password <span class="label-required">*</span></label>
+            </div>
             <div class="form-control-wrap">
-              <input 
-                type="password" 
-                id="confirmPasswordInput" 
-                name="new_password2" 
-                class="form-input" 
-                placeholder="Re-enter new password" 
+              <input
+                type="password"
+                id="confirmPasswordInput"
+                name="new_password2"
+                class="form-input"
+                placeholder="Re-enter new password"
+                autocomplete="new-password"
                 required
               >
               <i data-lucide="key" class="form-control-icon"></i>
@@ -277,12 +583,18 @@
                 <i data-lucide="eye" style="width: 16px; height: 16px;"></i>
               </button>
             </div>
-            <div id="passMatchNotice" style="font-size: 0.775rem; margin-top: 0.35rem; display: none;"></div>
+            <div id="passMatchNotice" class="pass-match-notice" style="display: none;"></div>
+            {% if password_form.new_password2.errors %}
+            <span class="field-error-text">{% for err in password_form.new_password2.errors %}{{ err }}{% endfor %}</span>
+            {% endif %}
           </div>
         </div>
 
         <div class="form-actions-bar">
-          <button type="submit" class="btn btn-primary">
+          <button type="reset" class="btn btn-outline" id="btnCancelPasswordChange">
+            <span>Cancel</span>
+          </button>
+          <button type="submit" class="btn btn-primary" data-submitting-text="Updating Password...">
             <i data-lucide="shield-check" class="btn-icon"></i>
             <span>Update Password</span>
           </button>
