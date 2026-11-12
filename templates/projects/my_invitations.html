@@ -1,0 +1,122 @@
+{% extends 'app_base.html' %}
+{% load static %}
+
+{% block title %}Project Invitations — KaryaFlow{% endblock %}
+{% block nav_invitations %}active{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/projects.css' %}">
+{% endblock %}
+
+{% block topbar_heading %}
+<h1 class="topbar-greeting">Project Invitations</h1>
+<p class="topbar-subtext">Review and respond to invitations to collaborate on projects.</p>
+{% endblock %}
+
+{% block content %}
+{% include 'projects/_messages.html' %}
+
+<!-- ======================== 1. INVITATIONS OVERVIEW ======================== -->
+<div class="project-detail-hero" style="margin-bottom: 1.5rem;">
+  <div class="project-header-main" style="align-items: center;">
+    <div class="project-title-area">
+      <div class="project-headline-row" style="margin-bottom: 0.25rem;">
+        <h2 class="project-main-heading" style="font-size: 1.4rem;">Pending Invitations</h2>
+        <span class="section-counter-badge">{{ pending_count }}</span>
+      </div>
+      <p class="project-hero-desc">
+        When a project leader invites you to their workspace, the invitation will appear below. Accept to join as an active member.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ======================== 2. INVITATIONS LIST ======================== -->
+{% if invitations %}
+<div class="invitations-container" style="display: flex; flex-direction: column; gap: 1rem;">
+  {% for inv in invitations %}
+  <div class="project-card" id="invitation-card-{{ inv.id }}" style="padding: 1.35rem 1.5rem;">
+    <div class="project-card-header" style="margin-bottom: 0.75rem;">
+      <div class="project-title-group">
+        <h3 class="project-name" style="font-size: 1.15rem; margin-bottom: 0.25rem;">
+          {{ inv.project.name }}
+        </h3>
+        <div style="font-size: 0.8rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.45rem;">
+          <span>Invited by <strong>{{ inv.inviter_name }}</strong></span>
+          <span>&bull;</span>
+          <span>{{ inv.created_at|date:"M j, Y" }}</span>
+        </div>
+      </div>
+
+      <!-- Status Badge -->
+      <div>
+        <span class="status-badge-tag {{ inv.status|lower }}" style="font-size: 0.75rem; padding: 0.25rem 0.65rem;">
+          {{ inv.get_status_display }}
+        </span>
+      </div>
+    </div>
+
+    {% if inv.project.description %}
+    <p class="project-description" style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">
+      {{ inv.project.description }}
+    </p>
+    {% endif %}
+
+    <!-- Card Footer & Actions -->
+    <div class="project-card-footer" style="padding-top: 0.85rem; border-top: 1px solid var(--border-light); display: flex; align-items: center; justify-content: space-between;">
+      <div style="font-size: 0.8rem; color: var(--text-secondary);">
+        Role offered: <span class="role-badge role-member" style="font-size: 0.7rem; padding: 0.15rem 0.5rem;">{{ inv.get_role_display }}</span>
+        {% if inv.responded_at %}
+        <span style="margin-left: 0.5rem; color: var(--text-muted);">&bull; Responded on {{ inv.responded_at|date:"M j, Y" }}</span>
+        {% endif %}
+      </div>
+
+      {% if inv.status == 'pending' %}
+      <div class="invitation-action-group" style="display: flex; align-items: center; gap: 0.65rem;">
+        <!-- Reject Button -->
+        <form method="post" action="{% url 'reject_invitation' inv.id %}" style="display: inline; margin: 0;">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-outline" style="padding: 0.45rem 0.85rem; font-size: 0.825rem; color: var(--status-danger, #B91C1C);">
+            <i data-lucide="x" class="btn-icon" style="width: 14px; height: 14px;"></i>
+            <span>Decline</span>
+          </button>
+        </form>
+
+        <!-- Accept Button -->
+        <form method="post" action="{% url 'accept_invitation' inv.id %}" style="display: inline; margin: 0;">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-primary" style="padding: 0.45rem 1rem; font-size: 0.825rem;">
+            <i data-lucide="check" class="btn-icon" style="width: 14px; height: 14px;"></i>
+            <span>Accept &amp; Join</span>
+          </button>
+        </form>
+      </div>
+      {% elif inv.status == 'accepted' %}
+      <div>
+        <a href="{% url 'project_detail' inv.project_id %}" class="btn-project-action secondary" style="text-decoration: none;">
+          <i data-lucide="external-link" style="width: 13px; height: 13px;"></i>
+          <span>Open Workspace</span>
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% else %}
+<!-- Empty State: No Invitations -->
+<div class="empty-state-box">
+  <div class="empty-state-icon-wrap">
+    <i data-lucide="mail-check" class="empty-state-svg"></i>
+  </div>
+  <h3 class="empty-state-title">No invitations found</h3>
+  <p class="empty-state-desc">You don't have any project invitations at the moment. When project leaders invite you, they will appear here.</p>
+  <a class="btn btn-primary" href="{% url 'my_projects' %}">
+    <i data-lucide="folder-kanban" class="btn-icon"></i>
+    <span>Explore My Projects</span>
+  </a>
+</div>
+{% endif %}
+
+{% endblock %}

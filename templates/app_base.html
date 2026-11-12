@@ -87,6 +87,15 @@
         {% endif %}
       </a>
 
+      <!-- 4. Invitations -->
+      <a href="{% url 'my_invitations' %}" class="sidebar-link {% block nav_invitations %}{% endblock %}">
+        <i data-lucide="mail" class="sidebar-icon"></i>
+        <span>Invitations</span>
+        {% if pending_invitations_count %}
+        <span class="sidebar-badge highlight">{{ pending_invitations_count }}</span>
+        {% endif %}
+      </a>
+
       <span class="sidebar-section-title">Preferences</span>
 
       <!-- 4. Profile / Settings -->

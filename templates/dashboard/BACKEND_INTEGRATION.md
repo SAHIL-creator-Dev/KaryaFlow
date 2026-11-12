@@ -115,23 +115,25 @@ A list of tasks assigned to `request.user`.
 
 ---
 
-### E. Recent Activity (`activities`)
+### E. Project Progress & Workload
+Project workload and progress percentages are computed directly from the annotated `projects` list (`progress`, `completed_tasks`, `total_tasks`, `remaining_tasks`).
+
+---
+
+### F. Authorized Team Overview (`team_members`)
+Distinct colleagues belonging to the authenticated user's projects:
 ```python
 {
-    'activities': [
+    'team_members': [
         {
-            'icon': 'check-circle-2',        # Lucide icon name
-            'title': 'Task completed',
-            'description': 'Aanya R. completed "Design role permission matrix"',
-            'project_name': 'KaryaFlow Platform Hardening',
-            'timestamp': '25 minutes ago',
-        },
-        {
-            'icon': 'folder-plus',
-            'title': 'New project created',
-            'description': 'You created "Sprint 05: API Integration"',
-            'project_name': 'Sprint 05: API Integration',
-            'timestamp': '2 hours ago',
+            'id': 2,
+            'name': 'Aanya Rao',
+            'username': 'aanya',
+            'email': 'aanya@example.com',
+            'initials': 'AR',
+            'projects': [
+                {'name': 'KaryaFlow Platform Hardening', 'role': 'Leader', 'is_leader': True}
+            ],
         }
     ]
 }
@@ -139,16 +141,7 @@ A list of tasks assigned to `request.user`.
 
 ---
 
-### F. Unread Notifications Count
-```python
-{
-    'unread_notifications_count': 2
-}
-```
-
----
-
 ## 3. Empty States Handled Gracefully
 If `projects` is empty (`{% if not projects %}`), an empty state appears encouraging the user to create or join a project.
-If `tasks` is empty (`{% if not tasks %}`), an empty state confirms all tasks are up to date.
-If `activities` is empty, a clean "No recent activity" placeholder is shown.
+If `tasks` is empty (`{% if not tasks %}`), an empty state confirms "All caught up!" (or "No tasks found" when filters are active).
+If `team_members` is empty, an empty state informs the user that collaborators will appear as they are invited.

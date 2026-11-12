@@ -221,12 +221,17 @@
             <!-- Leader Actions: Edit, Delete -->
             {% if is_leader %}
             <div class="task-action-btns">
-              <button class="task-icon-action" title="Edit task" onclick="alert('Leader Action: Edit Task #{{ task.id }}');">
+              <a href="{% url 'edit_task' task.id %}" class="task-icon-action open-edit-task-modal" title="Edit task" data-task-id="{{ task.id }}" data-task-title="{{ task.title }}" data-task-desc="{{ task.description }}" data-task-priority="{{ task.priority }}" data-task-status="{{ task.status }}" data-task-start-date="{{ task.start_date|date:'Y-m-d' }}" data-task-deadline="{{ task.deadline|date:'Y-m-d' }}" data-task-assigned-to="{{ task.assigned_to_id }}">
                 <i data-lucide="edit-3" style="width: 13px; height: 13px;"></i>
-              </button>
-              <button class="task-icon-action delete" title="Delete task" onclick="alert('Leader Action: Delete Task #{{ task.id }}');">
-                <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
-              </button>
+              </a>
+              <form method="post" action="{% url 'project_detail' project.id %}" style="display:inline; margin:0;" onsubmit="return confirm('Are you sure you want to delete task &quot;{{ task.title|escapejs }}&quot;?');">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete_task">
+                <input type="hidden" name="task_id" value="{{ task.id }}">
+                <button type="submit" class="task-icon-action delete" title="Delete task">
+                  <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
+                </button>
+              </form>
             </div>
             {% endif %}
           </div>
@@ -456,8 +461,8 @@
               </select>
               <button type="submit" class="member-role-save">Save</button>
             </form>
-            {% if not mem.is_creator or not mem.is_leader %}
-            <form method="post" action="{% url 'project_detail' project.id %}" onsubmit="return confirm('Remove {{ mem.name|escapejs }} from this project?');">
+            {% if not mem.is_leader %}
+            <form method="post" action="{% url 'project_detail' project.id %}" onsubmit="return confirm('Are you sure you want to remove {{ mem.name|escapejs }} from this project?');">
               {% csrf_token %}
               <input type="hidden" name="action" value="remove_member">
               <input type="hidden" name="membership_id" value="{{ mem.id }}">
@@ -557,6 +562,53 @@
       </button>
       {% endif %}
     </div>
+    <!-- Invitations Section (Visible to Leader) -->
+    {% if is_leader and invitations %}
+    <div class="project-invitations-subpanel" style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px dashed var(--border-color);">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.85rem;">
+        <div style="display: flex; align-items: center; gap: 0.45rem;">
+          <i data-lucide="mail" style="width: 16px; height: 16px; color: var(--accent-primary);"></i>
+          <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--text-main); margin: 0;">Sent Invitations</h4>
+          <span class="section-counter-badge" style="font-size: 0.7rem; padding: 0.15rem 0.5rem;">{{ invitations|length }}</span>
+        </div>
+      </div>
+
+      <div class="invitations-list-stack" style="display: flex; flex-direction: column; gap: 0.65rem;">
+        {% for inv in invitations %}
+        <div class="member-row-card" id="invitation-row-{{ inv.id }}" style="padding: 0.75rem 0.85rem; background: var(--bg-primary);">
+          <div class="member-profile-combo">
+            <div class="member-avatar-box" style="width: 32px; height: 32px; font-size: 0.75rem;">
+              {{ inv.invited_user_initials|default:"U" }}
+            </div>
+            <div class="member-text-meta">
+              <span class="member-full-name" style="font-size: 0.825rem;">{{ inv.invited_user_name }}</span>
+              <span class="member-sub-info" style="font-size: 0.725rem;">
+                Sent {{ inv.created_at|date:"M j" }} &bull; Role: {{ inv.get_role_display }}
+              </span>
+            </div>
+          </div>
+
+          <div class="member-right-controls" style="display: flex; align-items: center; gap: 0.5rem;">
+            <!-- Status Badge -->
+            <span class="status-badge-tag {{ inv.status|lower }}" style="font-size: 0.68rem; padding: 0.15rem 0.5rem;">
+              {{ inv.get_status_display }}
+            </span>
+
+            <!-- Leader Cancel Action for Pending Invitations -->
+            {% if inv.status == 'pending' %}
+            <form method="post" action="{% url 'cancel_invitation' inv.id %}" style="display: inline; margin: 0;" onsubmit="return confirm('Cancel invitation for {{ inv.invited_user_name|escapejs }}?');">
+              {% csrf_token %}
+              <button type="submit" class="task-icon-action delete" title="Cancel invitation" aria-label="Cancel invitation for {{ inv.invited_user_name }}">
+                <i data-lucide="x" style="width: 13px; height: 13px;"></i>
+              </button>
+            </form>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
     {% endif %}
   </aside>
 
@@ -572,7 +624,7 @@
       </button>
     </div>
 
-    <form method="post" action="{% url 'project_detail' project.id|default:1 %}">
+    <form method="post" action="{% url 'project_detail' project.id %}">
       {% csrf_token %}
       <input type="hidden" name="action" value="create_task">
 
@@ -593,16 +645,22 @@
             <option value="low">Low</option>
             <option value="medium" selected>Medium</option>
             <option value="high">High</option>
+            <option value="urgent">Urgent</option>
           </select>
         </div>
 
         <div>
-          <label class="form-label" for="taskDeadlineInput">Deadline</label>
-          <input type="date" id="taskDeadlineInput" name="deadline" class="form-input" style="padding-left: 1rem;">
+          <label class="form-label" for="taskStartDateInput">Start Date</label>
+          <input type="date" id="taskStartDateInput" name="start_date" class="form-input" style="padding-left: 1rem;">
         </div>
       </div>
 
       <div class="settings-form-grid" style="margin-bottom: 1.25rem;">
+        <div>
+          <label class="form-label" for="taskDeadlineInput">Deadline</label>
+          <input type="date" id="taskDeadlineInput" name="deadline" class="form-input" style="padding-left: 1rem;">
+        </div>
+
         <div>
           <label class="form-label" for="taskAssigneeSelect">Assign To</label>
           <select id="taskAssigneeSelect" name="assigned_to" class="filter-select" style="width: 100%;" required>
@@ -613,15 +671,16 @@
             {% endfor %}
           </select>
         </div>
+      </div>
 
-        <div>
-          <label class="form-label" for="taskStatusSelect">Status</label>
-          <select id="taskStatusSelect" name="status" class="filter-select" style="width: 100%;">
-            <option value="pending" selected>To Do</option>
-            <option value="in_progress">In Progress</option>
-            <option value="completed">Completed</option>
-          </select>
-        </div>
+      <div class="form-group" style="margin-bottom: 1.25rem;">
+        <label class="form-label" for="taskStatusSelect">Status</label>
+        <select id="taskStatusSelect" name="status" class="filter-select" style="width: 100%;">
+          <option value="pending" selected>To Do</option>
+          <option value="in_progress">In Progress</option>
+          <option value="in_review">In Review</option>
+          <option value="completed">Completed</option>
+        </select>
       </div>
 
       <div class="modal-form-actions">
@@ -629,6 +688,87 @@
         <button type="submit" class="btn btn-primary">
           <i data-lucide="check" class="btn-icon"></i>
           <span>Create Task</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ======================== MODAL: EDIT TASK (Leader Only) ======================== -->
+<div class="modal-backdrop-wrap" id="modalEditTask" role="dialog" aria-modal="true" aria-labelledby="modalEditTaskTitle">
+  <div class="modal-dialog-box">
+    <div class="modal-dialog-header">
+      <h3 class="modal-dialog-title" id="modalEditTaskTitle">Edit Task</h3>
+      <button class="modal-close-trigger" aria-label="Close modal">
+        <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+      </button>
+    </div>
+
+    <form method="post" action="{% url 'project_detail' project.id %}">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="edit_task">
+      <input type="hidden" name="task_id" id="editTaskId" value="">
+
+      <div class="form-group">
+        <label class="form-label" for="editTaskTitleInput">Task Title <span class="label-required">*</span></label>
+        <input type="text" id="editTaskTitleInput" name="title" class="form-input" required maxlength="200">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="editTaskDescInput">Task Description</label>
+        <textarea id="editTaskDescInput" name="description" class="form-input" style="height: 80px; padding: 0.65rem 1rem;"></textarea>
+      </div>
+
+      <div class="settings-form-grid" style="margin-bottom: 1.25rem;">
+        <div>
+          <label class="form-label" for="editTaskPrioritySelect">Priority</label>
+          <select id="editTaskPrioritySelect" name="priority" class="filter-select" style="width: 100%;">
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+            <option value="urgent">Urgent</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="form-label" for="editTaskStartDateInput">Start Date</label>
+          <input type="date" id="editTaskStartDateInput" name="start_date" class="form-input" style="padding-left: 1rem;">
+        </div>
+      </div>
+
+      <div class="settings-form-grid" style="margin-bottom: 1.25rem;">
+        <div>
+          <label class="form-label" for="editTaskDeadlineInput">Deadline</label>
+          <input type="date" id="editTaskDeadlineInput" name="deadline" class="form-input" style="padding-left: 1rem;">
+        </div>
+
+        <div>
+          <label class="form-label" for="editTaskAssigneeSelect">Assign To</label>
+          <select id="editTaskAssigneeSelect" name="assigned_to" class="filter-select" style="width: 100%;" required>
+            {% for member in members %}
+            <option value="{{ member.user_id }}">
+              {{ member.name }}{% if member.user_id == request.user.id %} (You){% endif %}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 1.25rem;">
+        <label class="form-label" for="editTaskStatusSelect">Status</label>
+        <select id="editTaskStatusSelect" name="status" class="filter-select" style="width: 100%;">
+          <option value="pending">To Do</option>
+          <option value="in_progress">In Progress</option>
+          <option value="in_review">In Review</option>
+          <option value="completed">Completed</option>
+        </select>
+      </div>
+
+      <div class="modal-form-actions">
+        <button type="button" class="btn btn-outline modal-close-trigger">Cancel</button>
+        <button type="submit" class="btn btn-primary">
+          <i data-lucide="check" class="btn-icon"></i>
+          <span>Save Changes</span>
         </button>
       </div>
     </form>
@@ -645,7 +785,7 @@
       </button>
     </div>
 
-    <form method="post" action="{% url 'project_detail' project.id|default:1 %}">
+    <form method="post" action="{% url 'project_detail' project.id %}">
       {% csrf_token %}
       <input type="hidden" name="action" value="invite_member">
 
@@ -665,8 +805,8 @@
       <div class="modal-form-actions">
         <button type="button" class="btn btn-outline modal-close-trigger">Cancel</button>
         <button type="submit" class="btn btn-primary">
-          <i data-lucide="user-plus" class="btn-icon"></i>
-          <span>Add Member</span>
+          <i data-lucide="send" class="btn-icon"></i>
+          <span>Send Invitation</span>
         </button>
       </div>
     </form>
@@ -683,7 +823,7 @@
       </button>
     </div>
 
-    <form method="post" action="{% url 'project_detail' project.id|default:1 %}">
+    <form method="post" action="{% url 'project_detail' project.id %}">
       {% csrf_token %}
       <input type="hidden" name="action" value="update_project">
 

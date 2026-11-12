@@ -103,3 +103,81 @@ class ProjectMembership(models.Model):
 
     def __str__(self):
         return f"{self.user} - {self.project.name} ({self.get_role_display()})"
+
+
+class ProjectInvitation(models.Model):
+    """
+    Represents an invitation sent by a project leader to a registered KaryaFlow user.
+    Membership is only granted once the invited user accepts the invitation.
+    """
+
+    class Status(models.TextChoices):
+        PENDING = 'pending', 'Pending'
+        ACCEPTED = 'accepted', 'Accepted'
+        REJECTED = 'rejected', 'Rejected'
+        CANCELLED = 'cancelled', 'Cancelled'
+        EXPIRED = 'expired', 'Expired'
+
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        related_name='invitations',
+        help_text="Project the user is invited to join."
+    )
+    invited_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='sent_project_invitations',
+        help_text="Project leader who issued the invitation."
+    )
+    invited_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='received_project_invitations',
+        help_text="Registered KaryaFlow user invited to the project."
+    )
+    role = models.CharField(
+        max_length=15,
+        choices=ProjectMembership.Role.choices,
+        default=ProjectMembership.Role.MEMBER,
+        help_text="Proposed role for the user upon acceptance."
+    )
+    status = models.CharField(
+        max_length=15,
+        choices=Status.choices,
+        default=Status.PENDING,
+        help_text="Current lifecycle state of the invitation."
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text="Timestamp when the invitation was dispatched."
+    )
+    responded_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Timestamp when the invitee accepted or rejected the invitation."
+    )
+    expires_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Optional expiration timestamp for the invitation."
+    )
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['status']),
+            models.Index(fields=['created_at']),
+            models.Index(fields=['project', 'status']),
+            models.Index(fields=['invited_user', 'status']),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['project', 'invited_user'],
+                condition=models.Q(status='pending'),
+                name='unique_pending_project_invitation',
+            ),
+        ]
+
+    def __str__(self):
+        return f"Invite for {self.invited_user} to {self.project.name} ({self.get_status_display()})"

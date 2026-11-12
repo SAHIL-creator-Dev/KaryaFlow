@@ -1,0 +1,110 @@
+{% extends 'app_base.html' %}
+{% load static %}
+
+{% block title %}Edit {{ task.title }} — KaryaFlow{% endblock %}
+{% block nav_tasks %}active{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/projects.css' %}">
+<style>
+.task-edit-container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 1.5rem 0;
+}
+.task-edit-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  box-shadow: var(--shadow-sm);
+}
+</style>
+{% endblock %}
+
+{% block topbar_heading %}
+<h1 class="topbar-greeting">Edit Task</h1>
+<p class="topbar-subtext">Update task details and assignments for {{ project.name }}.</p>
+{% endblock %}
+
+{% block content %}
+{% include 'projects/_messages.html' %}
+
+<div class="task-edit-container">
+  <div style="margin-bottom: 1rem;">
+    <a href="{% url 'task_detail' task.id %}" class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+      <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i>
+      <span>Back to Task Details</span>
+    </a>
+  </div>
+
+  <div class="task-edit-card">
+    <form method="post" action="{% url 'edit_task' task.id %}">
+      {% csrf_token %}
+
+      <div class="form-group" style="margin-bottom: 1.25rem;">
+        <label class="form-label" for="taskTitle">Task Title <span class="label-required">*</span></label>
+        <input type="text" id="taskTitle" name="title" class="form-input" value="{{ task.title }}" maxlength="200" required>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 1.25rem;">
+        <label class="form-label" for="taskDesc">Description</label>
+        <textarea id="taskDesc" name="description" class="form-input" style="height: 100px; padding: 0.65rem 1rem;">{{ task.description }}</textarea>
+      </div>
+
+      <div class="settings-form-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:1.25rem; margin-bottom: 1.25rem;">
+        <div>
+          <label class="form-label" for="taskPriority">Priority</label>
+          <select id="taskPriority" name="priority" class="filter-select" style="width: 100%;">
+            <option value="low" {% if task.priority == 'low' %}selected{% endif %}>Low</option>
+            <option value="medium" {% if task.priority == 'medium' %}selected{% endif %}>Medium</option>
+            <option value="high" {% if task.priority == 'high' %}selected{% endif %}>High</option>
+            <option value="urgent" {% if task.priority == 'urgent' %}selected{% endif %}>Urgent</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="form-label" for="taskStatus">Status</label>
+          <select id="taskStatus" name="status" class="filter-select" style="width: 100%;">
+            <option value="pending" {% if task.status == 'pending' %}selected{% endif %}>To Do</option>
+            <option value="in_progress" {% if task.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+            <option value="in_review" {% if task.status == 'in_review' %}selected{% endif %}>In Review</option>
+            <option value="completed" {% if task.status == 'completed' %}selected{% endif %}>Completed</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="settings-form-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:1.25rem; margin-bottom: 1.25rem;">
+        <div>
+          <label class="form-label" for="taskStartDate">Start Date</label>
+          <input type="date" id="taskStartDate" name="start_date" class="form-input" value="{{ task.start_date|date:'Y-m-d' }}">
+        </div>
+
+        <div>
+          <label class="form-label" for="taskDeadline">Deadline</label>
+          <input type="date" id="taskDeadline" name="deadline" class="form-input" value="{{ task.deadline|date:'Y-m-d' }}">
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 1.75rem;">
+        <label class="form-label" for="taskAssignee">Assign To (Project Members Only) <span class="label-required">*</span></label>
+        <select id="taskAssignee" name="assigned_to" class="filter-select" style="width: 100%;" required>
+          {% for member in form.fields.assigned_to.queryset %}
+          <option value="{{ member.id }}" {% if task.assigned_to_id == member.id %}selected{% endif %}>
+            {{ member.get_full_name|default:member.username }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:0.75rem;">
+        <a href="{% url 'task_detail' task.id %}" class="btn btn-outline">Cancel</a>
+        <button type="submit" class="btn btn-primary">
+          <i data-lucide="check" class="btn-icon"></i>
+          <span>Save Changes</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

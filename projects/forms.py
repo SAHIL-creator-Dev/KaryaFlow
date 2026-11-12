@@ -45,11 +45,13 @@ class ProjectTaskForm(forms.ModelForm):
             'title',
             'description',
             'priority',
+            'start_date',
             'deadline',
             'assigned_to',
             'status',
         )
         widgets = {
+            'start_date': forms.DateInput(attrs={'type': 'date'}),
             'deadline': forms.DateInput(attrs={'type': 'date'}),
         }
 
@@ -59,6 +61,14 @@ class ProjectTaskForm(forms.ModelForm):
         self.fields['assigned_to'].queryset = get_user_model().objects.filter(
             project_memberships__project=project,
         ).order_by('first_name', 'last_name', 'username').distinct()
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start_date = cleaned_data.get('start_date')
+        deadline = cleaned_data.get('deadline')
+        if start_date and deadline and deadline < start_date:
+            self.add_error('deadline', "Deadline cannot be earlier than start date.")
+        return cleaned_data
 
     def save(self, commit=True):
         task = super().save(commit=False)

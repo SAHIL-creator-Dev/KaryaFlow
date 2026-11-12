@@ -82,6 +82,14 @@
         {% endif %}
       </a>
 
+      <a href="{% url 'my_invitations' %}" class="sidebar-link">
+        <i data-lucide="mail" class="sidebar-icon"></i>
+        <span>Invitations</span>
+        {% if pending_invitations_count %}
+        <span class="sidebar-badge highlight">{{ pending_invitations_count }}</span>
+        {% endif %}
+      </a>
+
       <span class="sidebar-section-title">Preferences</span>
 
       <a href="{% url 'profile' %}" class="sidebar-link">
@@ -181,85 +189,105 @@
       <!-- ======================== 3. SUMMARY STATISTICS CARDS ======================== -->
       <section class="stats-overview-grid" aria-label="Workspace Statistics">
         
-        <!-- Total Projects -->
-        <div class="stat-metric-card">
+        <!-- Total Projects (Active & Completed breakdown) -->
+        <div class="stat-metric-card" id="statCardProjects">
           <div class="stat-metric-content">
             <span class="stat-metric-count">
-              {% if stats.total_projects is not None %}
-                {{ stats.total_projects }}
-              {% elif preview_mode %}
-                4
-              {% else %}
-                0
-              {% endif %}
+              {{ detailed_stats.total_projects|default:stats.total_projects|default:0 }}
             </span>
             <span class="stat-metric-label">Total Projects</span>
+            <span class="stat-metric-subtext">
+              {{ detailed_stats.active_projects|default:0 }} active · {{ detailed_stats.completed_projects|default:0 }} completed
+            </span>
           </div>
           <div class="stat-icon-wrapper theme-terracotta">
             <i data-lucide="folder-kanban" class="stat-icon"></i>
           </div>
         </div>
 
-        <!-- Active Tasks -->
-        <div class="stat-metric-card">
+        <!-- Active Tasks (In Progress & To Do) -->
+        <div class="stat-metric-card" id="statCardActiveTasks">
           <div class="stat-metric-content">
             <span class="stat-metric-count">
-              {% if stats.active_tasks is not None %}
-                {{ stats.active_tasks }}
-              {% elif preview_mode %}
-                8
-              {% else %}
-                0
-              {% endif %}
+              {{ detailed_stats.active_tasks|default:stats.active_tasks|default:0 }}
             </span>
             <span class="stat-metric-label">Active Tasks</span>
+            <span class="stat-metric-subtext">
+              {{ detailed_stats.in_progress_tasks|default:0 }} in progress · {{ detailed_stats.pending_tasks|default:stats.pending_tasks|default:0 }} to do
+            </span>
           </div>
           <div class="stat-icon-wrapper theme-amber">
             <i data-lucide="clock" class="stat-icon"></i>
           </div>
         </div>
 
-        <!-- Completed Tasks -->
-        <div class="stat-metric-card">
+        <!-- In Review Tasks -->
+        <div class="stat-metric-card" id="statCardReviewTasks">
           <div class="stat-metric-content">
             <span class="stat-metric-count">
-              {% if stats.completed_tasks is not None %}
-                {{ stats.completed_tasks }}
-              {% elif preview_mode %}
-                14
-              {% else %}
-                0
-              {% endif %}
+              {{ detailed_stats.in_review_tasks|default:0 }}
+            </span>
+            <span class="stat-metric-label">In Review Tasks</span>
+            <span class="stat-metric-subtext">
+              Awaiting verification
+            </span>
+          </div>
+          <div class="stat-icon-wrapper theme-blue">
+            <i data-lucide="eye" class="stat-icon"></i>
+          </div>
+        </div>
+
+        <!-- Overdue Tasks -->
+        <div class="stat-metric-card" id="statCardOverdueTasks">
+          <div class="stat-metric-content">
+            <span class="stat-metric-count">
+              {{ detailed_stats.overdue_tasks|default:0 }}
+            </span>
+            <span class="stat-metric-label">Overdue Tasks</span>
+            <span class="stat-metric-subtext">
+              Past scheduled deadline
+            </span>
+          </div>
+          <div class="stat-icon-wrapper theme-red">
+            <i data-lucide="alert-triangle" class="stat-icon"></i>
+          </div>
+        </div>
+
+        <!-- Completed Tasks -->
+        <div class="stat-metric-card" id="statCardCompletedTasks">
+          <div class="stat-metric-content">
+            <span class="stat-metric-count">
+              {{ detailed_stats.completed_tasks|default:stats.completed_tasks|default:0 }}
             </span>
             <span class="stat-metric-label">Completed Tasks</span>
+            <span class="stat-metric-subtext">
+              Finished &amp; closed
+            </span>
           </div>
           <div class="stat-icon-wrapper theme-green">
             <i data-lucide="check-circle-2" class="stat-icon"></i>
           </div>
         </div>
 
-        <!-- Pending Tasks -->
-        <div class="stat-metric-card">
+        <!-- Project Roles (Leader vs Member) -->
+        <div class="stat-metric-card" id="statCardRoles">
           <div class="stat-metric-content">
             <span class="stat-metric-count">
-              {% if stats.pending_tasks is not None %}
-                {{ stats.pending_tasks }}
-              {% elif preview_mode %}
-                3
-              {% else %}
-                0
-              {% endif %}
+              {{ stats.leader_projects|default:0 }} / {{ stats.member_projects|default:0 }}
             </span>
-            <span class="stat-metric-label">Pending Tasks</span>
+            <span class="stat-metric-label">Leader / Member Roles</span>
+            <span class="stat-metric-subtext">
+              Across {{ detailed_stats.total_projects|default:stats.total_projects|default:0 }} workspaces
+            </span>
           </div>
           <div class="stat-icon-wrapper theme-sand">
-            <i data-lucide="list-todo" class="stat-icon"></i>
+            <i data-lucide="shield" class="stat-icon"></i>
           </div>
         </div>
 
       </section>
 
-      <!-- ======================== 4. MY PROJECTS SECTION (Adaptive Role-Aware) ======================== -->
+      <!-- ======================== 4. MY PROJECTS SECTION ======================== -->
       <section class="dashboard-section" id="projects-section" aria-label="My Projects">
         <div class="dashboard-section-header">
           <div class="section-heading-group">
@@ -274,8 +302,15 @@
               {% endif %}
             </span>
             <span class="dashboard-project-role-counts">
-              {{ stats.leader_projects }} Leader · {{ stats.member_projects }} Member
+              {{ stats.leader_projects|default:0 }} Leader · {{ stats.member_projects|default:0 }} Member
             </span>
+          </div>
+
+          <div>
+            <a href="{% url 'my_projects' %}" class="btn-project-action secondary" title="View all projects in directory">
+              <span>View All Projects</span>
+              <i data-lucide="arrow-right" style="width: 13px; height: 13px;"></i>
+            </a>
           </div>
         </div>
 
@@ -283,13 +318,25 @@
         {% if projects %}
         <div class="projects-cards-grid">
           {% for project in projects %}
-          <div class="project-card">
+          <div class="project-card" id="project-card-{{ project.id }}">
             <div class="project-card-header">
               <div class="project-title-group">
-                <h3 class="project-name">{{ project.name }}</h3>
+                <h3 class="project-name">
+                  <a href="{% url 'project_detail' project.id %}" style="text-decoration:none; color:inherit;">{{ project.name }}</a>
+                </h3>
+                <div class="project-card-meta-top" style="display:flex; align-items:center; gap:0.5rem; font-size:0.75rem; color:var(--text-muted); margin-top:0.2rem;">
+                  <span class="project-status-pill {{ project.status_code|slugify }}" style="font-size:0.7rem; padding:0.15rem 0.5rem;">
+                    <span class="status-indicator-dot"></span>
+                    {{ project.status }}
+                  </span>
+                  {% if project.created_at %}
+                  <span>&bull;</span>
+                  <span>Created {{ project.created_at|date:"M j, Y" }}</span>
+                  {% endif %}
+                </div>
               </div>
               
-              <!-- Role Badge (Per-project role determination) -->
+              <!-- Role Badge -->
               {% if project.is_leader or project.user_role|lower == 'leader' %}
               <span class="role-badge role-leader" title="You are the Project Leader">
                 <i data-lucide="crown" class="role-badge-icon"></i>
@@ -308,7 +355,7 @@
             <!-- Progress Bar -->
             <div class="project-progress-wrap">
               <div class="progress-meta-row">
-                <span class="progress-label">Progress ({{ project.completed_tasks }}/{{ project.total_tasks }} tasks)</span>
+                <span class="progress-label">Progress ({{ project.completed_tasks }}/{{ project.total_tasks }} tasks completed)</span>
                 <span class="progress-value">{{ project.progress|default:0 }}%</span>
               </div>
               <div class="project-progress-track">
@@ -320,16 +367,17 @@
             <div class="project-card-footer">
               <div class="project-meta-members">
                 <i data-lucide="users" style="width: 15px; height: 15px; color: var(--text-muted);"></i>
-                <span>{{ project.member_count }} Members</span>
+                <span>{{ project.member_count }} Member{{ project.member_count|pluralize }}</span>
               </div>
 
               <div class="project-actions-group">
+                <!-- Direct link to project detail page -->
+                <a href="{% url 'project_detail' project.id %}" class="btn-project-action secondary" title="Open workspace">
+                  <i data-lucide="external-link" style="width: 13px; height: 13px;"></i>
+                  <span>Workspace</span>
+                </a>
+
                 {% if project.is_leader or project.user_role|lower == 'leader' %}
-                  <!-- Leader Actions: Manage Project, Members, Create Task -->
-                  <a href="{% url 'project_detail' project.id %}" class="btn-project-action secondary" title="Manage project settings">
-                    <i data-lucide="settings" style="width: 13px; height: 13px;"></i>
-                    <span>Manage</span>
-                  </a>
                   <a href="{% url 'project_detail' project.id %}#team-members" class="btn-project-action secondary" title="Invite & manage members">
                     <i data-lucide="user-plus" style="width: 13px; height: 13px;"></i>
                     <span>Members</span>
@@ -337,12 +385,6 @@
                   <a href="{% url 'project_detail' project.id %}#create-task" class="btn-project-action primary" title="Create and assign a task">
                     <i data-lucide="plus" style="width: 13px; height: 13px;"></i>
                     <span>Add Task</span>
-                  </a>
-                {% else %}
-                  <!-- Member Action: View Project Only -->
-                  <a href="{% if project.id %}{% url 'project_detail' project.id %}{% else %}#{% endif %}" class="btn-project-action secondary" title="View project overview">
-                    <i data-lucide="external-link" style="width: 13px; height: 13px;"></i>
-                    <span>View Project</span>
                   </a>
                 {% endif %}
               </div>
@@ -387,20 +429,11 @@
                 <span>5 Members</span>
               </div>
 
-              <!-- Leader-Specific Controls -->
               <div class="project-actions-group">
                 <a href="{% url 'project_detail' 1 %}" class="btn-project-action secondary" title="View workspace">
                   <i data-lucide="external-link" style="width: 13px; height: 13px;"></i>
                   <span>View</span>
                 </a>
-                <button class="btn-project-action secondary" title="Manage project settings">
-                  <i data-lucide="settings" style="width: 13px; height: 13px;"></i>
-                  <span>Manage</span>
-                </button>
-                <button class="btn-project-action secondary" title="Invite & manage members">
-                  <i data-lucide="user-plus" style="width: 13px; height: 13px;"></i>
-                  <span>Members</span>
-                </button>
               </div>
             </div>
           </div>
@@ -409,7 +442,7 @@
           <div class="project-card">
             <div class="project-card-header">
               <div class="project-title-group">
-                <h3 class="project-name">Marketing & Brand Guidelines</h3>
+                <h3 class="project-name">Marketing &amp; Brand Guidelines</h3>
               </div>
               <span class="role-badge role-member" title="You are a Project Member">
                 <i data-lucide="user" class="role-badge-icon"></i>
@@ -437,7 +470,6 @@
                 <span>4 Members</span>
               </div>
 
-              <!-- Member-Specific Control: View Only -->
               <div class="project-actions-group">
                 <a href="{% url 'project_detail' 2 %}" class="btn-project-action secondary" title="View project overview">
                   <i data-lucide="external-link" style="width: 13px; height: 13px;"></i>
@@ -465,10 +497,10 @@
         {% endif %}
       </section>
 
-      <!-- ======================== 5. DUAL COLUMN: MY TASKS & RECENT ACTIVITY ======================== -->
+      <!-- ======================== 5. DUAL COLUMN: MY TASKS & WORKLOAD / TEAM ======================== -->
       <div class="dashboard-split-columns">
         
-        <!-- Column A: My Assigned Tasks -->
+        <!-- Column A: My Assigned Tasks with Filters -->
         <section class="dashboard-panel" id="tasks-section" aria-label="Assigned Tasks">
           <div class="dashboard-section-header">
             <div class="section-heading-group">
@@ -483,26 +515,79 @@
                 {% endif %}
               </span>
             </div>
+
+            <div>
+              <a href="{% url 'my_tasks' %}" class="btn-project-action secondary" title="Go to My Tasks page">
+                <span>View Full List</span>
+                <i data-lucide="arrow-right" style="width: 13px; height: 13px;"></i>
+              </a>
+            </div>
           </div>
+
+          <!-- Task Filtering Toolbar -->
+          <form method="get" action="{% url 'dashboard' %}" class="dashboard-filter-toolbar" aria-label="Filter my tasks">
+            <!-- Project Filter -->
+            <select name="project" class="dashboard-filter-select" aria-label="Filter by project" onchange="this.form.submit()">
+              <option value="all" {% if project_filter == 'all' %}selected{% endif %}>All Projects</option>
+              {% for p in projects %}
+              <option value="{{ p.name }}" {% if project_filter == p.name|lower %}selected{% endif %}>{{ p.name }}</option>
+              {% endfor %}
+            </select>
+
+            <!-- Status Filter -->
+            <select name="status" class="dashboard-filter-select" aria-label="Filter by status" onchange="this.form.submit()">
+              <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Statuses</option>
+              {% for status_val, status_lbl in task_status_choices %}
+              <option value="{{ status_val }}" {% if status_filter == status_val %}selected{% endif %}>{{ status_lbl }}</option>
+              {% endfor %}
+            </select>
+
+            <!-- Priority Filter -->
+            <select name="priority" class="dashboard-filter-select" aria-label="Filter by priority" onchange="this.form.submit()">
+              <option value="all" {% if priority_filter == 'all' %}selected{% endif %}>All Priorities</option>
+              {% for prio_val, prio_lbl in task_priority_choices %}
+              <option value="{{ prio_val }}" {% if priority_filter == prio_val %}selected{% endif %}>{{ prio_lbl }}</option>
+              {% endfor %}
+            </select>
+
+            {% if project_filter != 'all' or status_filter != 'all' or priority_filter != 'all' %}
+            <a href="{% url 'dashboard' %}" class="dashboard-filter-clear">Clear</a>
+            {% endif %}
+          </form>
 
           <!-- Real Backend Tasks Loop -->
           {% if tasks %}
           <div class="tasks-list-container">
             {% for task in tasks %}
-            <div class="task-item-card {% if task.status == 'completed' %}is-completed{% elif task.status == 'in_progress' %}is-in-progress{% endif %}">
+            <div class="task-item-card {% if task.status == 'completed' %}is-completed{% elif task.status == 'in_progress' %}is-in-progress{% endif %}" id="dashboard-task-{{ task.id }}">
               <div class="task-item-left">
                 <div class="task-info-content">
-                  <span class="task-main-title">{{ task.title }}</span>
+                  <span class="task-main-title">
+                    <a href="{% url 'task_detail' task.id %}" style="text-decoration:none; color:inherit;">{{ task.title }}</a>
+                  </span>
                   <div class="task-sub-meta">
                     <span class="task-project-pill">{{ task.project.name }}</span>
                     <span>&bull;</span>
-                    <span>{% if task.deadline %}Due {{ task.deadline|date:"M j" }}{% else %}No deadline{% endif %}</span>
+                    {% if task.deadline %}
+                      <span class="{% if task.is_overdue %}task-overdue-tag{% endif %}">
+                        {% if task.is_overdue %}<i data-lucide="alert-circle" style="width:11px; height:11px;"></i> Overdue · {% endif %}
+                        Due {{ task.deadline|date:"M j, Y" }}
+                      </span>
+                    {% else %}
+                      <span>No deadline</span>
+                    {% endif %}
+                    {% if task.start_date %}
+                      <span>&bull;</span>
+                      <span>Starts {{ task.start_date|date:"M j" }}</span>
+                    {% endif %}
                   </div>
                 </div>
               </div>
 
               <div class="task-item-right">
                 <span class="priority-tag {{ task.priority|lower|default:'medium' }}">{{ task.priority|title|default:"Medium" }}</span>
+                
+                <!-- Status Updater Form (Authorized for assigned member) -->
                 <form method="post" action="{% url 'update_task_status' task.id %}" class="dashboard-task-status-form">
                   {% csrf_token %}
                   <input type="hidden" name="next" value="{% url 'dashboard' %}">
@@ -514,6 +599,10 @@
                   </select>
                   <button class="dashboard-task-status-save" type="submit">Save</button>
                 </form>
+
+                <a href="{% url 'task_detail' task.id %}" class="btn-project-action ghost" title="View task details">
+                  <i data-lucide="arrow-up-right" style="width: 14px; height: 14px;"></i>
+                </a>
               </div>
             </div>
             {% endfor %}
@@ -522,7 +611,6 @@
           {% elif preview_mode %}
           <!-- Preview Mode Tasks -->
           <div class="tasks-list-container">
-            <!-- Task 1 -->
             <div class="task-item-card is-in-progress">
               <div class="task-item-left">
                 <button class="task-status-btn" title="Mark as completed">
@@ -542,48 +630,6 @@
                 <span class="status-badge-tag in-progress">In Progress</span>
               </div>
             </div>
-
-            <!-- Task 2 -->
-            <div class="task-item-card">
-              <div class="task-item-left">
-                <button class="task-status-btn" title="Mark as completed">
-                  <i data-lucide="check" style="width: 12px; height: 12px;"></i>
-                </button>
-                <div class="task-info-content">
-                  <span class="task-main-title">Export brand logo variants in SVG format</span>
-                  <div class="task-sub-meta">
-                    <span class="task-project-pill">Marketing &amp; Brand Guidelines</span>
-                    <span>&bull;</span>
-                    <span>Due Nov 04</span>
-                  </div>
-                </div>
-              </div>
-              <div class="task-item-right">
-                <span class="priority-tag medium">Medium</span>
-                <span class="status-badge-tag pending">Pending</span>
-              </div>
-            </div>
-
-            <!-- Task 3 -->
-            <div class="task-item-card is-completed">
-              <div class="task-item-left">
-                <button class="task-status-btn" title="Mark as pending">
-                  <i data-lucide="check" style="width: 12px; height: 12px;"></i>
-                </button>
-                <div class="task-info-content">
-                  <span class="task-main-title">Configure Django session &amp; CSRF protection</span>
-                  <div class="task-sub-meta">
-                    <span class="task-project-pill">KaryaFlow Platform Hardening</span>
-                    <span>&bull;</span>
-                    <span>Completed</span>
-                  </div>
-                </div>
-              </div>
-              <div class="task-item-right">
-                <span class="priority-tag low">Normal</span>
-                <span class="status-badge-tag completed">Completed</span>
-              </div>
-            </div>
           </div>
 
           {% else %}
@@ -592,85 +638,102 @@
             <div class="empty-state-icon-wrap">
               <i data-lucide="check-circle" class="empty-state-svg"></i>
             </div>
+            {% if project_filter != 'all' or status_filter != 'all' or priority_filter != 'all' %}
+            <h3 class="empty-state-title">No tasks found</h3>
+            <p class="empty-state-desc">No assigned tasks match your selected filter criteria.</p>
+            <a href="{% url 'dashboard' %}" class="btn btn-outline" style="margin-top:0.5rem;">Reset Filters</a>
+            {% else %}
             <h3 class="empty-state-title">All caught up!</h3>
             <p class="empty-state-desc">You don't have any assigned tasks pending right now.</p>
+            {% endif %}
           </div>
           {% endif %}
         </section>
 
-        <!-- Column B: Recent Activity Stream -->
-        <section class="dashboard-panel" id="activity-section" aria-label="Recent Activity">
-          <div class="dashboard-section-header">
-            <div class="section-heading-group">
-              <h2 class="section-main-title">Recent Activity</h2>
-            </div>
-          </div>
-
-          <!-- Real Backend Activities Loop -->
-          {% if activities %}
-          <div class="activity-stream">
-            {% for act in activities %}
-            <div class="activity-row">
-              <div class="activity-icon-bubble">
-                <i data-lucide="{{ act.icon|default:'activity' }}" class="activity-bubble-svg"></i>
-              </div>
-              <div class="activity-info-box">
-                <span class="activity-headline">{{ act.title }}</span>
-                <span class="activity-desc">{{ act.description }}</span>
-                <span class="activity-timestamp">{{ act.timestamp }}</span>
-              </div>
-            </div>
-            {% endfor %}
-          </div>
-
-          {% elif preview_mode %}
-          <!-- Preview Mode Activities -->
-          <div class="activity-stream">
-            <div class="activity-row">
-              <div class="activity-icon-bubble">
-                <i data-lucide="check-circle-2" class="activity-bubble-svg"></i>
-              </div>
-              <div class="activity-info-box">
-                <span class="activity-headline">Task Completed</span>
-                <span class="activity-desc">Aanya R. finished "Design role permission matrix"</span>
-                <span class="activity-timestamp">25 minutes ago</span>
+        <!-- Column B: Project Progress Overview & Team Overview -->
+        <div style="display:flex; flex-direction:column; gap:1.75rem;">
+          
+          <!-- Section 5: Project Progress and Workload Overview -->
+          <section class="dashboard-panel" id="workload-section" aria-label="Project Progress and Workload">
+            <div class="dashboard-section-header">
+              <div class="section-heading-group">
+                <h2 class="section-main-title">Project Progress</h2>
               </div>
             </div>
 
-            <div class="activity-row">
-              <div class="activity-icon-bubble">
-                <i data-lucide="folder-plus" class="activity-bubble-svg"></i>
+            {% if projects %}
+            <div class="workload-list">
+              {% for p in projects %}
+              <div class="workload-item">
+                <div class="workload-header">
+                  <a href="{% url 'project_detail' p.id %}" class="workload-title">{{ p.name }}</a>
+                  <span class="workload-stats-pill">{{ p.progress }}%</span>
+                </div>
+                <div class="project-progress-track">
+                  <div class="project-progress-bar" style="width: {{ p.progress }}%;"></div>
+                </div>
+                <div class="workload-meta">
+                  <span>{{ p.completed_tasks }} completed · {{ p.remaining_tasks }} remaining</span>
+                  <span>{{ p.total_tasks }} total task{{ p.total_tasks|pluralize }}</span>
+                </div>
               </div>
-              <div class="activity-info-box">
-                <span class="activity-headline">Project Created</span>
-                <span class="activity-desc">You initialized "KaryaFlow Platform Hardening"</span>
-                <span class="activity-timestamp">2 hours ago</span>
+              {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state-box" style="padding:1.5rem 1rem;">
+              <p class="empty-state-desc" style="margin-bottom:0;">No active projects to monitor progress.</p>
+            </div>
+            {% endif %}
+          </section>
+
+          <!-- Section 6: Team Overview -->
+          <section class="dashboard-panel" id="team-section" aria-label="Team Overview">
+            <div class="dashboard-section-header">
+              <div class="section-heading-group">
+                <h2 class="section-main-title">Team Overview</h2>
+                <span class="section-counter-badge">
+                  {{ team_members|length }}
+                </span>
               </div>
             </div>
 
-            <div class="activity-row">
-              <div class="activity-icon-bubble">
-                <i data-lucide="user-plus" class="activity-bubble-svg"></i>
+            {% if team_members %}
+            <div class="team-overview-list">
+              {% for tm in team_members %}
+              <div class="team-member-card">
+                <div class="team-member-left">
+                  <div class="team-avatar" title="{{ tm.name }}">
+                    {{ tm.initials }}
+                  </div>
+                  <div class="team-member-info">
+                    <span class="team-member-name">{{ tm.name }}</span>
+                    <div class="team-member-projects">
+                      {% for tp in tm.projects %}
+                      <span class="team-project-chip {% if tp.is_leader %}is-leader{% endif %}" title="{{ tp.role }} in {{ tp.name }}">
+                        {% if tp.is_leader %}<i data-lucide="crown" style="width:10px; height:10px;"></i>{% endif %}
+                        {{ tp.name|truncatechars:18 }} ({{ tp.role }})
+                      </span>
+                      {% endfor %}
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div class="activity-info-box">
-                <span class="activity-headline">New Member Added</span>
-                <span class="activity-desc">Mihir D. joined Marketing &amp; Brand Guidelines</span>
-                <span class="activity-timestamp">Yesterday</span>
-              </div>
+              {% endfor %}
             </div>
-          </div>
+            {% else %}
+            <div class="empty-state-box" style="padding:1.5rem 1rem;">
+              <div class="empty-state-icon-wrap" style="width:36px; height:36px; margin-bottom:0.5rem;">
+                <i data-lucide="users" class="empty-state-svg" style="width:18px; height:18px;"></i>
+              </div>
+              <h3 class="empty-state-title" style="font-size:0.95rem;">No team members yet</h3>
+              <p class="empty-state-desc" style="font-size:0.8rem; margin-bottom:0;">
+                Collaborators from your projects will appear here as they are invited.
+              </p>
+            </div>
+            {% endif %}
+          </section>
 
-          {% else %}
-          <!-- Empty State: No Activity -->
-          <div class="empty-state-box">
-            <div class="empty-state-icon-wrap">
-              <i data-lucide="activity" class="empty-state-svg"></i>
-            </div>
-            <h3 class="empty-state-title">No recent activity</h3>
-            <p class="empty-state-desc">Project updates and team actions will appear here as they happen.</p>
-          </div>
-          {% endif %}
-        </section>
+        </div>
 
       </div>
 

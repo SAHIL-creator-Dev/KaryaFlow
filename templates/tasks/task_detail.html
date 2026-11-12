@@ -1,0 +1,174 @@
+{% extends 'app_base.html' %}
+{% load static %}
+
+{% block title %}{{ task.title }} — KaryaFlow{% endblock %}
+{% block nav_tasks %}active{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/tasks.css' %}">
+<style>
+.task-detail-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1.5rem 0;
+}
+.task-detail-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  box-shadow: var(--shadow-sm);
+}
+.task-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+.task-detail-title-group h2 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+.task-detail-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.25rem;
+  margin: 1.5rem 0;
+  padding: 1.25rem;
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+}
+.meta-item-label {
+  font-size: 0.775rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+}
+.meta-item-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.task-detail-body {
+  margin: 1.5rem 0;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+.task-detail-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
+}
+</style>
+{% endblock %}
+
+{% block topbar_heading %}
+<h1 class="topbar-greeting">Task Details</h1>
+<p class="topbar-subtext">Review and update task progress.</p>
+{% endblock %}
+
+{% block content %}
+{% include 'projects/_messages.html' %}
+
+<div class="task-detail-container">
+  <div style="margin-bottom: 1rem;">
+    <a href="{% url 'project_detail' project.id %}" class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+      <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i>
+      <span>Back to Project</span>
+    </a>
+  </div>
+
+  <div class="task-detail-card">
+    <div class="task-detail-header">
+      <div class="task-detail-title-group">
+        <h2>{{ task.title }}</h2>
+        <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+          <a href="{% url 'project_detail' project.id %}" style="text-decoration:none; font-size:0.875rem; color:var(--accent-primary); font-weight:500;">
+            <i data-lucide="folder" style="width: 14px; height: 14px; vertical-align: middle;"></i>
+            {{ project.name }}
+          </a>
+          <span class="priority-tag {{ task.priority|lower }}">{{ task.priority|title }}</span>
+          <span class="status-badge-tag {% if task.status == 'in_progress' %}in-progress{% else %}{{ task.status }}{% endif %}">
+            {{ task.get_status_display }}
+          </span>
+        </div>
+      </div>
+
+      {% if is_leader %}
+      <div style="display: flex; gap: 0.5rem;">
+        <a href="{% url 'edit_task' task.id %}" class="btn btn-primary" style="padding: 0.45rem 0.9rem; font-size: 0.85rem;">
+          <i data-lucide="edit-3" class="btn-icon"></i>
+          <span>Edit Task</span>
+        </a>
+        <form method="post" action="{% url 'delete_task' task.id %}" onsubmit="return confirm('Delete this task?');">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-outline" style="padding: 0.45rem 0.9rem; font-size: 0.85rem; color: var(--status-danger);">
+            <i data-lucide="trash-2" class="btn-icon"></i>
+            <span>Delete</span>
+          </button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Meta Details Grid -->
+    <div class="task-detail-meta-grid">
+      <div>
+        <div class="meta-item-label">Assigned To</div>
+        <div class="meta-item-value">{{ task.assigned_to.get_full_name|default:task.assigned_to.username }}</div>
+      </div>
+      <div>
+        <div class="meta-item-label">Created By</div>
+        <div class="meta-item-value">{{ task.creator.get_full_name|default:task.creator.username|default:"System" }}</div>
+      </div>
+      <div>
+        <div class="meta-item-label">Start Date</div>
+        <div class="meta-item-value">{% if task.start_date %}{{ task.start_date|date:"M j, Y" }}{% else %}Not specified{% endif %}</div>
+      </div>
+      <div>
+        <div class="meta-item-label">Deadline</div>
+        <div class="meta-item-value {% if task.is_overdue %}overdue{% endif %}">
+          {% if task.deadline %}{{ task.deadline|date:"M j, Y" }}{% else %}No deadline{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Description -->
+    <div class="task-detail-body">
+      <h4 style="font-size: 1rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem;">Description</h4>
+      <p>{{ task.description|default:"No description provided for this task."|linebreaks }}</p>
+    </div>
+
+    <!-- Status Updater -->
+    <div class="task-detail-actions">
+      <div style="font-size: 0.825rem; color: var(--text-muted);">
+        Created {{ task.created_at|date:"M j, Y, g:i A" }} &bull; Updated {{ task.updated_at|date:"M j, Y, g:i A" }}
+      </div>
+
+      {% if can_update_status %}
+      <form method="post" action="{% url 'update_task_status' task.id %}" style="display:flex; align-items:center; gap:0.5rem;">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{% url 'task_detail' task.id %}">
+        <label for="taskStatusChange" style="font-size:0.85rem; font-weight:600;">Status:</label>
+        <select id="taskStatusChange" name="status" class="filter-select" onchange="this.form.submit()">
+          {% for val, label in task_status_choices %}
+          <option value="{{ val }}" {% if task.status == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-outline" style="padding: 0.35rem 0.65rem; font-size: 0.8rem;">Save</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

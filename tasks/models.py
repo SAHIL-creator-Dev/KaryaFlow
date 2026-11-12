@@ -13,10 +13,12 @@ class Task(models.Model):
         LOW = 'low', 'Low'
         MEDIUM = 'medium', 'Medium'
         HIGH = 'high', 'High'
+        URGENT = 'urgent', 'Urgent'
 
     class Status(models.TextChoices):
         TODO = 'pending', 'To Do'
         IN_PROGRESS = 'in_progress', 'In Progress'
+        IN_REVIEW = 'in_review', 'In Review'
         COMPLETED = 'completed', 'Completed'
 
     title = models.CharField(
@@ -59,6 +61,11 @@ class Task(models.Model):
         default=Status.TODO,
         help_text="Current execution status of the task."
     )
+    start_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Planned start date for the task."
+    )
     deadline = models.DateField(
         null=True,
         blank=True,
@@ -81,14 +88,21 @@ class Task(models.Model):
             models.Index(fields=['deadline']),
             models.Index(fields=['project', 'status']),
             models.Index(fields=['assigned_to', 'status']),
+            models.Index(fields=['project', 'priority']),
         ]
 
     def clean(self):
         """
-        Model-level validation enforcing that the assigned user must be
-        an active member of the project.
+        Model-level validation enforcing:
+        1. The assigned user must be an active member of the project.
+        2. Deadline cannot be earlier than start_date.
         """
         super().clean()
+        errors = {}
+
+        if self.start_date and self.deadline and self.deadline < self.start_date:
+            errors['deadline'] = "Deadline cannot be earlier than start date."
+
         if self.project_id and self.assigned_to_id:
             # Check membership in the target project
             from projects.models import ProjectMembership
@@ -97,12 +111,13 @@ class Task(models.Model):
                 user_id=self.assigned_to_id
             ).exists()
             if not is_member:
-                raise ValidationError({
-                    'assigned_to': (
-                        f"The assigned user '{self.assigned_to}' is not a member of "
-                        f"the project '{self.project.name}'."
-                    )
-                })
+                errors['assigned_to'] = (
+                    f"The assigned user '{self.assigned_to}' is not a member of "
+                    f"the project '{self.project.name}'."
+                )
+
+        if errors:
+            raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
         # Always run model validation before saving

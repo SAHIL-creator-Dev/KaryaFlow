@@ -58,7 +58,7 @@
     </div>
 
     <!-- Status filter dropdown -->
-    <select class="filter-select" id="projectStatusFilter" aria-label="Filter by project status">
+    <select class="filter-select" id="projectStatusFilter" name="status" aria-label="Filter by project status">
       <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Statuses</option>
       <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>In Progress</option>
       <option value="planning" {% if status_filter == 'planning' %}selected{% endif %}>Planning</option>
@@ -478,8 +478,8 @@
       <div class="modal-form-actions">
         <button type="button" class="btn btn-outline modal-close-trigger">Cancel</button>
         <button type="submit" class="btn btn-primary">
-          <i data-lucide="user-plus" class="btn-icon"></i>
-          <span>Add Member</span>
+          <i data-lucide="send" class="btn-icon"></i>
+          <span>Send Invitation</span>
         </button>
       </div>
     </form>

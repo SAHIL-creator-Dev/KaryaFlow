@@ -134,6 +134,34 @@ document.addEventListener('DOMContentLoaded', () => {
         const projectIdInput = modal.querySelector('[name="project_id"]');
         if (projectIdInput) projectIdInput.value = projectId;
       }
+      if (modalId === 'modalEditTask') {
+        const taskId = t.getAttribute('data-task-id');
+        const taskTitle = t.getAttribute('data-task-title');
+        const taskDesc = t.getAttribute('data-task-desc');
+        const taskPriority = t.getAttribute('data-task-priority');
+        const taskStatus = t.getAttribute('data-task-status');
+        const taskStartDate = t.getAttribute('data-task-start-date');
+        const taskDeadline = t.getAttribute('data-task-deadline');
+        const taskAssignedTo = t.getAttribute('data-task-assigned-to');
+
+        const idInput = modal.querySelector('#editTaskId');
+        const titleInput = modal.querySelector('#editTaskTitleInput');
+        const descInput = modal.querySelector('#editTaskDescInput');
+        const priorityInput = modal.querySelector('#editTaskPrioritySelect');
+        const statusInput = modal.querySelector('#editTaskStatusSelect');
+        const startInput = modal.querySelector('#editTaskStartDateInput');
+        const deadlineInput = modal.querySelector('#editTaskDeadlineInput');
+        const assigneeInput = modal.querySelector('#editTaskAssigneeSelect');
+
+        if (idInput) idInput.value = taskId || '';
+        if (titleInput) titleInput.value = taskTitle || '';
+        if (descInput) descInput.value = taskDesc || '';
+        if (priorityInput && taskPriority) priorityInput.value = taskPriority;
+        if (statusInput && taskStatus) statusInput.value = taskStatus;
+        if (startInput) startInput.value = taskStartDate || '';
+        if (deadlineInput) deadlineInput.value = taskDeadline || '';
+        if (assigneeInput && taskAssignedTo) assigneeInput.value = taskAssignedTo;
+      }
       openModal();
     }));
 
@@ -153,6 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Connect Modals
   setupModal('.open-create-project-modal', 'modalCreateProject');
   setupModal('.open-create-task-modal', 'modalCreateTask');
+  setupModal('.open-edit-task-modal', 'modalEditTask');
   setupModal('.open-manage-members-modal', 'modalManageMembers');
   setupModal('.open-manage-project-modal', 'modalManageProject');
 

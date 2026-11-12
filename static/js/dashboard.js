@@ -60,16 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // 3. Notification Button Micro-interaction
-  const bellBtn = document.querySelector('.topbar-btn-bell');
-  bellBtn?.addEventListener('click', () => {
-    const badge = bellBtn.querySelector('.bell-badge');
-    if (badge) {
-      badge.style.display = 'none';
-    }
-  });
-
-  // 4. Initialize Lucide Icons
+  // 3. Initialize Lucide Icons
   if (window.lucide && typeof window.lucide.createIcons === 'function') {
     window.lucide.createIcons();
   }
